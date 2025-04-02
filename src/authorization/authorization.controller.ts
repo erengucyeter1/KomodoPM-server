@@ -8,7 +8,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 export class AuthorizationController {
   constructor(private readonly authorizationService: AuthorizationService) { }
 
-  @Post('/permission/new')
+  @Post('/permissions')
   async create(@Body() createPermissionDto: CreatePermissionDto) {
     return await this.authorizationService.createPermission(createPermissionDto);
   }

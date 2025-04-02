@@ -23,8 +23,8 @@ export class AuthController {
 
     @Post('register')
     @ApiOkResponse({ type: AuthEntity })
-    register(@Body() { username, password, name, surname, email, authorization_ids, authorization_rank }: RegisterDto) {
-        return this.authService.register(username, password, name, surname, email, authorization_ids, authorization_rank);
+    register(@Body() { username, password, name, surname, email, authorization_rank }: RegisterDto) {
+        return this.authService.register(username, password, name, surname, email, authorization_rank);
     }
 
 }

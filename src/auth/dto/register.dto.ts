@@ -15,11 +15,7 @@ export class RegisterDto {
 
     @IsEmail()
     email: string;
-
-    @IsArray()
-    @IsInt({ each: true })
-    authorization_ids: number[];
-
+    
     @IsInt()
     authorization_rank: number;
 }

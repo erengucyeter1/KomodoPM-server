@@ -8,7 +8,8 @@ export class UserEntity {
         this.name = user.name;
         this.surname = user.surname;
         this.email = user.email;
-        this.authorization_ids = user.authorization_ids;
+        this.permissions = user.permissions;
+        this.roles = user.roles;
         this.authorization_rank = user.authorization_rank;
     }
     id: string;
@@ -16,7 +17,8 @@ export class UserEntity {
     name: string;
     surname: string;
     email: string;
-    authorization_ids: number[];
+    permissions: number[];
+    roles: number[];
     authorization_rank: number;
 }
 

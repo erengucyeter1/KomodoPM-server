@@ -5,7 +5,7 @@ export class CreateUserDto {
     username: string;
 
     @IsString()
-    hash_password: string;
+    password: string;
 
     @IsString()
     name: string;
@@ -15,10 +15,6 @@ export class CreateUserDto {
 
     @IsEmail()
     email: string;
-
-    @IsArray()
-    @IsInt({ each: true })
-    authorization_ids: number[];
 
     @IsInt()
     authorization_rank: number;

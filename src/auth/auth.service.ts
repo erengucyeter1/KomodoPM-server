@@ -32,13 +32,13 @@ export class AuthService {
         }
 
         return {
-            accessToken: this.jwtService.sign({ userId: user.id, expiresIn: '1h' }),
+            accessToken: this.jwtService.sign({ userId: user.id}),
             userInfo: new UserEntity(user),
         }
     }
 
 
-    async register(username: string, password: string, name: string, surname: string, email: string, authorization_ids: number[], authorization_rank: number): Promise<{ message: string, statusCode: number }> {
+    async register(username: string, password: string, name: string, surname: string, email: string, authorization_rank: number): Promise<{ message: string, statusCode: number }> {
 
         const existingUser = await this.prisma.user.findUnique({ where: { username } });
 
@@ -51,11 +51,10 @@ export class AuthService {
             =
         {
             username,
-            hash_password: password,
+            password: password,
             name,
             surname,
             email,
-            authorization_ids,
             authorization_rank
         };
 

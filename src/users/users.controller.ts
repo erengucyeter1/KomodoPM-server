@@ -18,6 +18,7 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nest
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 
 @Controller('users')
@@ -67,6 +68,35 @@ export class UserController {
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.remove(id));
+  }
+
+  @Patch('roles/update')
+  @UseGuards(JwtAuthGuard)
+  @ApiCreatedResponse({ type: UserEntity })
+  async updateRoles(@Body() updateUserRolesDto: UpdateUserRolesDto) {
+    // Ensure roles are processed correctly regardless of type
+    if (updateUserRolesDto.roles && Array.isArray(updateUserRolesDto.roles)) {
+      // Explicitly convert each role to number to ensure proper typing
+      updateUserRolesDto.roles = updateUserRolesDto.roles.map(role => 
+        typeof role === 'string' ? parseInt(role, 10) : Number(role)
+      );
+    }
+    
+    console.log('Processing role update with payload:', updateUserRolesDto);
+    
+    return new UserEntity(
+      await this.usersService.updateUserRoles(updateUserRolesDto),
+    );
+  }
+
+
+  @Get(':id/roles')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: Object, isArray: true })
+  async getUserRoles(@Param('id', ParseIntPipe) id: number) {
+    const roles = await this.usersService.getUserRoles(id);
+    return roles;
   }
 
 }

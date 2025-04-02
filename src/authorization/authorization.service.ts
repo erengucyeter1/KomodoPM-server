@@ -93,7 +93,7 @@ export class AuthorizationService {
           id: true,
           name: true,
           description: true,
-          permissionIDs: true,
+          permissions: true,
         },
       });
 
