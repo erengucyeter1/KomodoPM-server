@@ -31,9 +31,27 @@ export class AuthService {
             throw new UnauthorizedException('Username or password is incorrect');
         }
 
+        const userPermissionIds = user.permissions || [];
+
+
+        const permissionNames = await this.prisma.permissions.findMany({
+            where: {
+                id: {
+                    in: userPermissionIds
+                }
+            },
+            select: {
+                name: true
+            }
+        });
+
+        const permissionNamesList = permissionNames.map(p => p.name);
+
+
+
+
         return {
-            accessToken: this.jwtService.sign({ userId: user.id}),
-            userInfo: new UserEntity(user),
+            accessToken: this.jwtService.sign({ user: new UserEntity(user, permissionNamesList) }),
         }
     }
 
