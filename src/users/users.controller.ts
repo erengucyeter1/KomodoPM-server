@@ -20,6 +20,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
+import {Permissions} from '../common/decorators/permissions/permissions.decorator';
 
 @Controller('users')
 @ApiTags('users')
@@ -36,6 +37,7 @@ export class UserController {
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
   async findAll() {
@@ -45,6 +47,7 @@ export class UserController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
+  @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -54,6 +57,7 @@ export class UserController {
 
 
   @Patch(':id')
+  @Permissions(['update:user'])
   @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: UserEntity })
   async update(
@@ -65,6 +69,7 @@ export class UserController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
+  @Permissions(['delete:user'])
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.remove(id));
@@ -72,18 +77,16 @@ export class UserController {
 
   @Patch('roles/update')
   @UseGuards(JwtAuthGuard)
+  @Permissions(['update:user_roles'])
   @ApiCreatedResponse({ type: UserEntity })
   async updateRoles(@Body() updateUserRolesDto: UpdateUserRolesDto) {
     // Ensure roles are processed correctly regardless of type
     if (updateUserRolesDto.roles && Array.isArray(updateUserRolesDto.roles)) {
-      // Explicitly convert each role to number to ensure proper typing
       updateUserRolesDto.roles = updateUserRolesDto.roles.map(role => 
         typeof role === 'string' ? parseInt(role, 10) : Number(role)
       );
     }
-    
-    console.log('Processing role update with payload:', updateUserRolesDto);
-    
+      
     return new UserEntity(
       await this.usersService.updateUserRoles(updateUserRolesDto),
     );
@@ -92,6 +95,7 @@ export class UserController {
 
   @Get(':id/roles')
   @UseGuards(JwtAuthGuard)
+  @Permissions(['see:user_roles'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: Object, isArray: true })
   async getUserRoles(@Param('id', ParseIntPipe) id: number) {

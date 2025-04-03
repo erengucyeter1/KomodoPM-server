@@ -4,6 +4,6 @@ import { UserEntity } from 'src/users/entities/user.entity';
 export class AuthEntity {
     @ApiProperty()
     accessToken: string;
-    @ApiProperty()
-    userInfo: UserEntity;
+    //@ApiProperty()
+    //userInfo: UserEntity;
 }
