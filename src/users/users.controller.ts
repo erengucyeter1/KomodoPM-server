@@ -29,6 +29,9 @@ export class UserController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
+  @Permissions(['add:user'])
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto) {
     return new UserEntity(await this.usersService.create(createUserDto));
@@ -59,6 +62,7 @@ export class UserController {
   @Patch(':id')
   @Permissions(['update:user'])
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -70,6 +74,7 @@ export class UserController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @Permissions(['delete:user'])
+  @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
   async remove(@Param('id', ParseIntPipe) id: number) {
     return new UserEntity(await this.usersService.remove(id));
@@ -78,6 +83,7 @@ export class UserController {
   @Patch('roles/update')
   @UseGuards(JwtAuthGuard)
   @Permissions(['update:user_roles'])
+  @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async updateRoles(@Body() updateUserRolesDto: UpdateUserRolesDto) {
     // Ensure roles are processed correctly regardless of type

@@ -14,6 +14,11 @@ export class PermissionGuard implements CanActivate {
       context.getHandler(),
     );
 
+    const strategy = this.reflector.get<string>(
+      'strategy',
+      context.getHandler(),
+    );
+
     console.log('Required Permissions:', requiredPermissions);
     // If no permissions are required, allow access
     if (!requiredPermissions || requiredPermissions.length === 0) {
@@ -53,11 +58,27 @@ export class PermissionGuard implements CanActivate {
     }
 
     // İzin kontrolü
-    const hasAllPermissions = requiredPermissions.every(permission =>
-      userPermissions.includes(permission),
-    );
 
-    if (!hasAllPermissions) {
+    let hasPermissions: boolean = false;
+
+    switch (strategy) {
+      case 'all':
+        hasPermissions = requiredPermissions.every(permission =>
+          userPermissions.includes(permission),
+        );
+        break;
+      case 'any':
+        hasPermissions = requiredPermissions.some(permission =>
+          userPermissions.includes(permission),
+        );
+        break;
+      default:
+        throw new ForbiddenException('Invalid strategy');
+        
+    }
+    
+
+    if (!hasPermissions) {
       console.log('User Permissions:', userPermissions);
       console.log('Required Permissions:', requiredPermissions);
       throw new ForbiddenException('Insufficient permissions');

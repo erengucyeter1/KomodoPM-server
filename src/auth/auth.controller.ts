@@ -1,15 +1,18 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Body, Post } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthEntity } from './entities/auth.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
+import {Permissions} from '../common/decorators/permissions/permissions.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
+
 
 @Controller('auth')
 @ApiTags('auth')
-
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
@@ -22,6 +25,9 @@ export class AuthController {
 
 
     @Post('register')
+    @UseGuards(JwtAuthGuard)
+    @Permissions(['add:user'])
+    @ApiBearerAuth()
     @ApiOkResponse({ type: AuthEntity })
     register(@Body() { username, password, name, surname, email, authorization_rank }: RegisterDto) {
         return this.authService.register(username, password, name, surname, email, authorization_rank);
