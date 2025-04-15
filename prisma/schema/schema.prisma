@@ -8,7 +8,7 @@ datasource db {
 }
 
 model bill {
-  id               BigInt             @id @default(autoincrement())
+  id               String             @id
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   project_expenses project_expenses[]
 }
@@ -23,18 +23,45 @@ model material {
 }
 
 model project_expenses {
-  id              BigInt          @id @default(autoincrement())
-  created_at      DateTime        @default(now()) @db.Timestamptz(6)
-  creator_id      BigInt
-  bill_id         BigInt
-  material_code   String          @db.VarChar
-  total_cost      Decimal         @db.Decimal
-  kdv_cost        Decimal         @db.Decimal
-  project_id      BigInt
-  bill            bill            @relation(fields: [bill_id], references: [id], onDelete: NoAction)
-  user            user            @relation(fields: [creator_id], references: [id], onDelete: SetNull)
-  material        material        @relation(fields: [material_code], references: [stock_code], onDelete: NoAction)
-  treyler_project treyler_project @relation(fields: [project_id], references: [id], onDelete: NoAction)
+  id         BigInt   @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  creator_id BigInt
+
+  bill_date   DateTime @db.Date
+  bill_id     String   @db.VarChar
+  seller_info String   @db.VarChar
+  seller_id   String   @db.VarChar
+
+  material_code                    String            @db.VarChar
+  material_description             String            @db.VarChar
+  material_count                   Decimal           @db.Decimal
+  measurement_type                 measurement_units
+  cost_without_tax                 Decimal           @db.Decimal
+  tax_cost                         Decimal           @db.Decimal
+  goods_or_service_tax             Decimal           @db.Decimal
+  ggb_id                           String            @db.VarChar
+  return_eligible_transaction_type String            @db.VarChar
+  expense_allocation_type_id       Int               @db.Integer
+  deduction_kdv_period             String            @db.VarChar
+  upload_kdv_period                String            @db.VarChar
+
+  total_cost   Decimal @db.Decimal
+  total_weight Decimal @db.Decimal
+  total_kdv    Decimal @db.Decimal
+
+  project_id BigInt
+
+  bill                    bill                    @relation(fields: [bill_id], references: [id], onDelete: NoAction)
+  user                    user                    @relation(fields: [creator_id], references: [id], onDelete: SetNull)
+  material                material                @relation(fields: [material_code], references: [stock_code], onDelete: NoAction)
+  treyler_project         treyler_project         @relation(fields: [project_id], references: [id], onDelete: NoAction)
+  expense_allocation_type expense_allocation_type @relation(fields: [expense_allocation_type_id], references: [id], onDelete: NoAction)
+}
+
+model expense_allocation_type {
+  id               Int                @id @default(autoincrement())
+  description      String             @db.VarChar
+  project_expenses project_expenses[]
 }
 
 model treyler_project {
@@ -55,16 +82,16 @@ model treyler_type {
 }
 
 model user {
-  id                 BigInt             @id @default(autoincrement())
-  created_at         DateTime           @default(now()) @db.Timestamptz(6)
-  username           String             @unique @db.VarChar
-  password      String             @db.VarChar
-  name               String             @db.VarChar
-  surname            String             @db.VarChar
-  email              String             @db.VarChar
-  permissions        Int[]
-  roles              Int[]
-  
+  id          BigInt   @id @default(autoincrement())
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  username    String   @unique @db.VarChar
+  password    String   @db.VarChar
+  name        String   @db.VarChar
+  surname     String   @db.VarChar
+  email       String   @db.VarChar
+  permissions Int[]
+  roles       Int[]
+
   authorization_rank Int
   project_expenses   project_expenses[]
   treyler_project    treyler_project[]
@@ -78,9 +105,9 @@ model permissions {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model role {
-  id            BigInt  @id @default(autoincrement())
-  name          String? @unique @db.VarChar
-  description   String? @db.VarChar
+  id          BigInt  @id @default(autoincrement())
+  name        String? @unique @db.VarChar
+  description String? @db.VarChar
   permissions Int[]
 }
 
