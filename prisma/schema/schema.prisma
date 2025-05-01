@@ -69,6 +69,13 @@ model treyler_project {
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
   creator_id       BigInt
   treyler_type_id  BigInt
+  name             String             @db.VarChar
+  description      String             @db.VarChar
+  customer_name    String             @db.VarChar
+  budget           Decimal    @db.Decimal(15, 2) 
+  total_expenses   Decimal    @db.Decimal(15, 2) 
+  status           String             @db.VarChar
+  end_date         DateTime           @db.Timestamptz(6)
   project_expenses project_expenses[]
   user             user               @relation(fields: [creator_id], references: [id], onDelete: SetNull)
   treyler_type     treyler_type       @relation(fields: [treyler_type_id], references: [id], onDelete: NoAction)
@@ -78,6 +85,9 @@ model treyler_type {
   id              BigInt            @id @default(autoincrement())
   created_at      DateTime          @default(now()) @db.Timestamptz(6)
   name            String            @db.VarChar
+  description     String?           @db.Text
+  image_data      String?           @db.Text        // For storing Base64 encoded image data
+  image_content_type String?        @db.VarChar(50) // For storing MIME type (e.g., 'image/jpeg')
   treyler_project treyler_project[]
 }
 
@@ -95,6 +105,9 @@ model user {
   authorization_rank Int
   project_expenses   project_expenses[]
   treyler_project    treyler_project[]
+
+  sentMessages     message[] @relation("sentMessages")
+  receivedMessages message[] @relation("receivedMessages")
 }
 
 model permissions {
@@ -111,10 +124,35 @@ model role {
   permissions Int[]
 }
 
+model message {
+  id          Int         @id @default(autoincrement())
+  content     String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  isRead      Boolean     @default(false)
+  message_type MessageType @default(text)
+  metadata    Json?       // JSON field to store additional data for specialized messages
+  
+  // Relations
+  sender      user        @relation("sentMessages", fields: [senderId], references: [id])
+  senderId    BigInt      // Changed from Int to BigInt
+  recipient   user        @relation("receivedMessages", fields: [recipientId], references: [id])
+  recipientId BigInt      // Changed from Int to BigInt
+
+  @@index([senderId])
+  @@index([recipientId])
+}
+
 enum measurement_units {
   kg
   meter
   liter
   box
   piece
+}
+
+enum MessageType {
+  text
+  permission_request
+  system
 }

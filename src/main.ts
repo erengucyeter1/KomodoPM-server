@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { json } from 'express'; // Bu satırı ekleyin
+
 
 
 async function bootstrap() {
@@ -12,8 +14,13 @@ async function bootstrap() {
     return this.toString(); // BigInt'i string'e dönüştür
   };
 
+
+  // CORS ayarları
+
+  app.use(json({ limit: '2mb' }));
+
   app.enableCors({
-    origin: 'http://localhost:3001', // Frontend URL'niz
+    origin: '*', // Frontend URL'niz
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

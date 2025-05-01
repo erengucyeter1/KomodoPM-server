@@ -70,8 +70,7 @@ async function main() {
           authorization_rank: 9,
           // Roller bir dizi olarak ekleniyor
           roles: [Number(adminRole.id)],
-          // permissions alanı rol tarafından otomatik güncellenecek
-          permissions: []
+          permissions: adminRole.permissions // İzinleri de ekle,
         }
       })
       

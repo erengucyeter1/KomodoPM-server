@@ -7,13 +7,14 @@ import { UsersService } from './users/users.service';
 import { UserModule } from './users/users.module';
 import { AuthorizationModule } from './authorization/authorization.module';
 import { AuthorizationService } from './authorization/authorization.service';
-import {ChatGateway} from './chat/sockets/index';
-
+import {ChatModule} from './chat/chat.module';
+import { TreylersModule } from './treylers/treylers.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
-  providers: [AppService, PrismaService, UsersService, AuthorizationService,ChatGateway],
+  providers: [AppService, PrismaService, UsersService, AuthorizationService],
 })
 export class AppModule { }
 
