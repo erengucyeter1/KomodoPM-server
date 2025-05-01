@@ -10,9 +10,10 @@ import { AuthorizationService } from './authorization/authorization.service';
 import {ChatModule} from './chat/chat.module';
 import { TreylersModule } from './treylers/treylers.module';
 import { ProjectsModule } from './projects/projects.module';
+import { StockModule } from './stock/stock.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule ], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
   providers: [AppService, PrismaService, UsersService, AuthorizationService],
 })
