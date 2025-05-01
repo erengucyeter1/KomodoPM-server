@@ -18,7 +18,7 @@ model material {
   measurement_unit measurement_units
   stock_code       String             @id @db.VarChar
   description      String             @db.VarChar
-  balance          Float
+  balance          Float              @default(0.0)
   project_expenses project_expenses[]
 }
 
@@ -144,11 +144,14 @@ model message {
 }
 
 enum measurement_units {
-  kg
-  meter
-  liter
-  box
-  piece
+  ADET
+  KİLO
+  METRE
+  SET
+  METREKÜP
+  TAKIM
+  TON
+  PAKET
 }
 
 enum MessageType {
