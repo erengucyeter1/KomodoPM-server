@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, DefaultValuePipe, ParseIntPipe, Query } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
@@ -12,9 +12,38 @@ export class StockController {
     return this.stockService.create(createStockDto);
   }
 
+  @Post('bulk')
+  async createBulk(@Body() createStockDtos: CreateStockDto[]) {
+    const results = await Promise.allSettled(
+      createStockDtos.map(stock => this.stockService.create(stock))
+    );
+    
+    // Filter successful creations
+    const createdStocks = results
+      .filter(result => result.status === 'fulfilled')
+      .map(result => (result as PromiseFulfilledResult<any>).value);
+    
+    
+    return createdStocks;
+  }
+    
+
+  // Backend pagination endpoint (NestJS example)
   @Get()
-  findAll() {
-    return this.stockService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit: number = 25,
+    @Query('sortBy') sortBy: string = 'stock_code',
+    @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'ASC',
+    @Query('filter') filter: string,
+  ) {
+    return this.stockService.findAll({
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      filter
+    });
   }
 
   @Get(':id')

@@ -11,9 +11,10 @@ import {ChatModule} from './chat/chat.module';
 import { TreylersModule } from './treylers/treylers.module';
 import { ProjectsModule } from './projects/projects.module';
 import { StockModule } from './stock/stock.module';
+import { QrcodeModule } from './qrcode/qrcode.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule ], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule, QrcodeModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
   providers: [AppService, PrismaService, UsersService, AuthorizationService],
 })
