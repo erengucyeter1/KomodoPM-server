@@ -10,11 +10,11 @@ export class QrcodeController {
   @Post()
   async create(@Body() createQrcodeDto: CreateQrcodeDto, @Res() res: Response) {
     try {
-      const buffer = await this.qrcodeService.generateQrcode(createQrcodeDto.data);
+      const buffer = await this.qrcodeService.generateQrcode(createQrcodeDto.code, createQrcodeDto.mesurement);
       
       // Set proper headers for PNG image
       res.setHeader('Content-Type', 'image/png');
-      res.setHeader('Content-Disposition', `attachment; filename="qrcode-${createQrcodeDto.data}.png"`);
+      res.setHeader('Content-Disposition', `attachment; filename="qrcode-${createQrcodeDto.code}.png"`);
       res.setHeader('Content-Length', buffer.length);
       
       // Send the buffer as a PNG image
