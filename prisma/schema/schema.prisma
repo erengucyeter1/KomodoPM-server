@@ -8,9 +8,34 @@ datasource db {
 }
 
 model bill {
-  id               String             @id
+  bill_id          String             @id @db.VarChar
   created_at       DateTime           @default(now()) @db.Timestamptz(6)
+  creator_id       BigInt             
+  bill_date        DateTime           @db.Date
+  seller_name      String             @db.VarChar
+  seller_id        String             @db.VarChar
+  material_info     String            @db.VarChar
+  material_count    Float
+  balance           Float             
+  measurement_type measurement_units
+  cost_without_tax  Decimal
+  tax_cost          Decimal
+
+  ggb_id            String            @db.VarChar
+  return_eligible_transaction_type String            @db.VarChar
+  deduction_kdv_period             String            @db.VarChar
+  upload_kdv_period                String            @db.VarChar
+
+
+
+
+
+
+
+
   project_expenses project_expenses[]
+
+  user user @relation(fields: [creator_id], references: [id])
 }
 
 model material {
@@ -26,25 +51,17 @@ model project_expenses {
   id         BigInt   @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
   creator_id BigInt
-
   bill_date   DateTime @db.Date
   bill_id     String   @db.VarChar
-  seller_info String   @db.VarChar
-  seller_id   String   @db.VarChar
-
+  
   material_code                    String            @db.VarChar
   material_description             String            @db.VarChar
   material_count                   Decimal           @db.Decimal
-  measurement_type                 measurement_units
-  cost_without_tax                 Decimal           @db.Decimal
+
   tax_cost                         Decimal           @db.Decimal
   goods_or_service_tax             Decimal           @db.Decimal
-  ggb_id                           String            @db.VarChar
-  return_eligible_transaction_type String            @db.VarChar
   expense_allocation_type_id       Int               @db.Integer
-  deduction_kdv_period             String            @db.VarChar
-  upload_kdv_period                String            @db.VarChar
-
+  
   total_cost   Decimal @db.Decimal
   total_weight Decimal @db.Decimal
   total_kdv    Decimal @db.Decimal
