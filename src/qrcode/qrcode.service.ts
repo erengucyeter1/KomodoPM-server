@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as QRCode from 'qrcode';
 import { createCanvas, loadImage, Canvas } from 'canvas';
-import * as path from 'path';
+import { logoBase64 } from './logo';
 
 @Injectable()
 export class QrcodeService {
   
-  async generateQrcode(data: string): Promise<Buffer> {
+  async generateQrcode(code: string, mesurement:string): Promise<Buffer> {
     // Create a canvas with higher resolution for better print quality
     // Add extra height for the license plate text at the bottom
     const qrSize = 800; // QR code size
@@ -23,7 +23,10 @@ export class QrcodeService {
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
     
     // Generate QR code as data URL
-    const qrDataURL = await QRCode.toDataURL(data, {
+
+    const qrText = code+";"+mesurement;
+
+    const qrDataURL = await QRCode.toDataURL(qrText, {
       errorCorrectionLevel: 'H', // High error correction for better readability
       margin: 0, // We're adding our own padding
       width: qrSize,
@@ -60,20 +63,78 @@ export class QrcodeService {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Calculate center position for the text (excluding the blue stripe area)
-    const textX = padding + 50 + ((plateWidth - 50) / 2);
+    // Calculate center position for the text more precisely
+    // Use the full width of the plate for better centering
+    const textX = padding + (plateWidth / 2);
     const textY = adjustedPlateY + (plateHeight / 2);
     
     // Draw the text
-    ctx.fillText(data, textX, textY);
+    const infoText = code + " - " + mesurement;
     
-    // Convert canvas to buffer
-    return canvas.toBuffer('image/png', {
-      compressionLevel: 6,
-      filters: Canvas.PNG_FILTER_NONE,
-      resolution: 300 // 300 DPI for print quality
-    });
+    // Check if text might be too long for the plate
+    const textMetrics = ctx.measureText(infoText);
+    if (textMetrics.width > (plateWidth - 40)) {
+      // If text is too long, reduce the font size
+      const fontSize = Math.min(60, Math.floor((plateWidth - 40) / textMetrics.width * 60));
+      ctx.font = `bold ${fontSize}px Arial`;
+    }
+    
+    ctx.fillText(infoText, textX, textY);
+
+
+    // add logo to center of qr code
+  // add logo to center of qr code
+  try {
+    // Calculate logo size (25% of QR code size is safe)
+    const logoSize = qrSize * 0.25;
+    const logoX = padding + (qrSize - logoSize) / 2;
+    const logoY = padding + (qrSize - logoSize) / 2;
+    
+    // Get logo as base64 string and load it
+    // Make sure the base64 string includes the data URL prefix
+    const logoImageSrc = `data:image/png;base64,${logoBase64}`;
+    const logoImage = await loadImage(logoImageSrc);
+    
+    // Draw white background for the logo (square)
+    ctx.fillStyle = '#FFFFFF';
+    
+    // Add padding around the logo
+    const logoBackgroundPadding = 10;
+    ctx.fillRect(
+      logoX - logoBackgroundPadding, 
+      logoY - logoBackgroundPadding, 
+      logoSize + (logoBackgroundPadding * 2), 
+      logoSize + (logoBackgroundPadding * 2)
+    );
+    
+    // Draw border around the logo background (square)
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(
+      logoX - logoBackgroundPadding, 
+      logoY - logoBackgroundPadding, 
+      logoSize + (logoBackgroundPadding * 2), 
+      logoSize + (logoBackgroundPadding * 2)
+    );
+    
+    // Draw the logo itself
+    ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
+  } catch (error) {
+    console.error('Error adding logo to QR code:', error);
+    // Continue without logo if there's an error
   }
+
+
+
+
+      
+      // Convert canvas to buffer
+      return canvas.toBuffer('image/png', {
+        compressionLevel: 6,
+        filters: Canvas.PNG_FILTER_NONE,
+        resolution: 300 // 300 DPI for print quality
+      });
+    }
   
   // Helper function to draw rounded rectangles
   private roundRect(
