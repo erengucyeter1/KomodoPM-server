@@ -63,27 +63,17 @@ export class QrcodeService {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Calculate center position for the text more precisely
-    // Use the full width of the plate for better centering
-    const textX = padding + (plateWidth / 2);
+    // Calculate center position for the text (excluding the blue stripe area)
+    const textX = padding + 50 + ((plateWidth - 50) / 2);
     const textY = adjustedPlateY + (plateHeight / 2);
     
     // Draw the text
+
     const infoText = code + " - " + mesurement;
-    
-    // Check if text might be too long for the plate
-    const textMetrics = ctx.measureText(infoText);
-    if (textMetrics.width > (plateWidth - 40)) {
-      // If text is too long, reduce the font size
-      const fontSize = Math.min(60, Math.floor((plateWidth - 40) / textMetrics.width * 60));
-      ctx.font = `bold ${fontSize}px Arial`;
-    }
-    
+
     ctx.fillText(infoText, textX, textY);
 
 
-    // add logo to center of qr code
-  // add logo to center of qr code
   try {
     // Calculate logo size (25% of QR code size is safe)
     const logoSize = qrSize * 0.25;
