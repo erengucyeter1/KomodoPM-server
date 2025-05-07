@@ -7,72 +7,126 @@ datasource db {
   url      = env("DIRECT_URL")
 }
 
-model bill {
-  bill_id          String             @id @db.VarChar
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
-  creator_id       BigInt             
-  bill_date        DateTime           @db.Date
-  seller_name      String             @db.VarChar
-  seller_id        String             @db.VarChar
-  material_info     String            @db.VarChar
-  material_count    Float
-  balance           Float             
-  measurement_type measurement_units
-  cost_without_tax  Decimal
-  tax_cost          Decimal
+model Invoice {
+  id                       Int              @id @default(autoincrement()) @map("FaturaID")
+  createdAt                DateTime         @default(now()) @map("OlusturmaTarihi")
+  updatedAt                DateTime         @updatedAt @map("GuncellemeTarihi")
+  invoiceType              InvoiceType      @map("FaturaTipi")
+  invoiceNumber            String           @unique @map("FaturaNumarasi") @db.VarChar(255)
+  invoiceDate              DateTime         @map("FaturaTarihi") @db.Date
+  dueDate                  DateTime?        @map("VadeTarihi") @db.Date
+  customerSupplierId       Int              @map("MusteriTedarikciID")
+  isInternational          Boolean          @map("IsInternational")
+  transactionType          TransactionType? @map("TransactionType")
+  currency                 String?          @map("ParaBirimi") @db.VarChar(3)
+  totalAmount              Decimal          @map("ToplamTutar") @db.Decimal(18, 2)
+  vatRate                  Decimal?         @map("KDVOrani") @db.Decimal(5, 2)
+  vatAmount                Decimal?         @map("KDVTutari") @db.Decimal(18, 2)
+  vatBalance               Decimal?         @map("KDVBakiye") @db.Decimal(18, 2)
+  isVatExempt              Boolean          @default(false) @map("IsKDVMuaf")
+  vatExemptionReason       String?          @map("KDVMuafiyetNedeni") @db.Text
+  customsDeclarationNumber String?          @map("GümrükBeyannameNumarası") @db.VarChar(255)
+  exportCountryCode        String?          @map("IhracatUlkeKodu") @db.VarChar(2)
+  importCountryCode        String?          @map("IthalatUlkeKodu") @db.VarChar(2)
+  exportDate               DateTime?        @map("IhracatTarihi") @db.Date
+  importDate               DateTime?        @map("IthalatTarihi") @db.Date
+  deliveryTerms            String?          @map("TeslimatKosullari") @db.VarChar(255)
+  gtipCode                 String?          @map("GTIPKodu") @db.VarChar(20)
+  vatRefundStatus          KDVRefundStatus  @default(Basvurulmadi) @map("KDVIadeDurumu")
+  vatRefundApplicationDate DateTime?        @map("KDVIadeBasvuruTarihi") @db.Date
+  invoiceFilePath          String?          @map("FaturaDosyaYolu") @db.VarChar(255)
 
-  ggb_id            String            @db.VarChar
-  return_eligible_transaction_type String            @db.VarChar
-  deduction_kdv_period             String            @db.VarChar
-  upload_kdv_period                String            @db.VarChar
+  ggb_id                           String?            @map("GGBTescilNo") @db.VarChar
+  return_eligible_transaction_type String?            @map("IadeHakkiDogIslemTuru") @db.VarChar
+  deduction_kdv_period             String?            @map("IndirimKDVDonem") @db.VarChar
+  upload_kdv_period                String?            @map("BelYuklendigiKDVDonem") @db.VarChar
+  expense_allocation_id            Int?               @map("YuklenimTuru")
+  // Relations
+  customerSupplier                 CustomerSupplier   @relation(fields: [customerSupplierId], references: [id])
+  invoiceDetails                   InvoiceDetail[]
+  project_expenses                 project_expenses[]
 
-
-
-
-
-
-
-
-  project_expenses project_expenses[]
-
-  user user @relation(fields: [creator_id], references: [id])
+  @@map("Faturalar")
 }
 
-model material {
-  created_at       DateTime           @default(now()) @db.Timestamptz(6)
+model InvoiceDetail {
+  id           Int      @id @default(autoincrement()) @map("FaturaDetayID")
+  invoiceId    Int      @map("FaturaID")
+  product_code String   @map("UrunKOD") @db.VarChar(255)
+  quantity     Decimal  @map("Miktar") @db.Decimal(10, 2)
+  unitPrice    Decimal  @map("BirimFiyat") @db.Decimal(18, 2)
+  totalAmount  Decimal  @map("ToplamTutar") @db.Decimal(18, 2)
+  description  String?  @map("Aciklama") @db.Text
+  createdAt    DateTime @default(now()) @map("OlusturmaTarihi")
+  updatedAt    DateTime @updatedAt @map("GuncellemeTarihi")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  product Product @relation(fields: [product_code], references: [stock_code])
+
+  @@map("FaturaDetaylari")
+}
+
+model CustomerSupplier {
+  id          Int      @id @default(autoincrement()) @map("MusteriTedarikciID")
+  title       String   @map("Unvan") @db.VarChar(255)
+  taxOffice   String?  @map("VergiDairesi") @db.VarChar(255)
+  taxNumber   String?  @unique @map("VergiNumarasi") @db.VarChar(20)
+  address     String?  @map("Adres") @db.Text
+  countryCode String?  @map("UlkeKodu") @db.VarChar(2)
+  phone       String?  @map("Telefon") @db.VarChar(20)
+  email       String?  @map("Eposta") @db.VarChar(255)
+  isSupplier  Boolean  @default(false) @map("TedarikciMi")
+  createdAt   DateTime @default(now()) @map("OlusturmaTarihi")
+  updatedAt   DateTime @updatedAt @map("GuncellemeTarihi")
+
+  // Relations
+  invoices Invoice[]
+
+  @@map("MusteriTedarikciler")
+}
+
+model Product {
+  created_at       DateTime          @default(now()) @db.Timestamptz(6)
   measurement_unit measurement_units
-  stock_code       String             @id @db.VarChar
-  description      String             @db.VarChar
-  balance          Float              @default(0.0)
+  stock_code       String            @id @db.VarChar
+  description      String            @db.VarChar
+  balance          Float             @default(0.0)
+
+  // İlişkiler
   project_expenses project_expenses[]
+  invoiceDetails   InvoiceDetail[]
+
+  @@map("Products") // Veritabanında hangi tablo ismi kullanılacak
 }
 
 model project_expenses {
   id         BigInt   @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
   creator_id BigInt
-  bill_date   DateTime @db.Date
-  bill_id     String   @db.VarChar
-  
-  material_code                    String            @db.VarChar
-  material_description             String            @db.VarChar
-  material_count                   Decimal           @db.Decimal
+  bill_date  DateTime @db.Date
+  bill_id    String   @db.VarChar
 
-  tax_cost                         Decimal           @db.Decimal
-  goods_or_service_tax             Decimal           @db.Decimal
-  expense_allocation_type_id       Int               @db.Integer
-  
+  material_code        String  @db.VarChar
+  material_description String  @db.VarChar
+  material_count       Decimal @db.Decimal
+
+  tax_cost             Decimal @db.Decimal
+  goods_or_service_tax Decimal @db.Decimal
+
   total_cost   Decimal @db.Decimal
   total_weight Decimal @db.Decimal
   total_kdv    Decimal @db.Decimal
+  used_kdv     Decimal @db.Decimal
 
   project_id BigInt
 
-  bill                    bill                    @relation(fields: [bill_id], references: [id], onDelete: NoAction)
-  user                    user                    @relation(fields: [creator_id], references: [id], onDelete: SetNull)
-  material                material                @relation(fields: [material_code], references: [stock_code], onDelete: NoAction)
-  treyler_project         treyler_project         @relation(fields: [project_id], references: [id], onDelete: NoAction)
-  expense_allocation_type expense_allocation_type @relation(fields: [expense_allocation_type_id], references: [id], onDelete: NoAction)
+  invoice                   Invoice                  @relation(fields: [bill_id], references: [invoiceNumber], onDelete: NoAction)
+  user                      user                     @relation(fields: [creator_id], references: [id], onDelete: NoAction)
+  product                   Product                  @relation(fields: [material_code], references: [stock_code], onDelete: NoAction)
+  treyler_project           treyler_project          @relation(fields: [project_id], references: [id], onDelete: NoAction)
+  expense_allocation_type   expense_allocation_type? @relation(fields: [expense_allocation_typeId], references: [id])
+  expense_allocation_typeId Int?
 }
 
 model expense_allocation_type {
@@ -89,23 +143,23 @@ model treyler_project {
   name             String             @db.VarChar
   description      String             @db.VarChar
   customer_name    String             @db.VarChar
-  budget           Decimal    @db.Decimal(15, 2) 
-  total_expenses   Decimal    @db.Decimal(15, 2) 
+  budget           Decimal            @db.Decimal(15, 2)
+  total_expenses   Decimal            @db.Decimal(15, 2)
   status           String             @db.VarChar
   end_date         DateTime           @db.Timestamptz(6)
   project_expenses project_expenses[]
-  user             user               @relation(fields: [creator_id], references: [id], onDelete: SetNull)
+  user             user               @relation(fields: [creator_id], references: [id], onDelete: NoAction)
   treyler_type     treyler_type       @relation(fields: [treyler_type_id], references: [id], onDelete: NoAction)
 }
 
 model treyler_type {
-  id              BigInt            @id @default(autoincrement())
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  name            String            @db.VarChar
-  description     String?           @db.Text
-  image_data      String?           @db.Text        // For storing Base64 encoded image data
-  image_content_type String?        @db.VarChar(50) // For storing MIME type (e.g., 'image/jpeg')
-  treyler_project treyler_project[]
+  id                 BigInt            @id @default(autoincrement())
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  name               String            @db.VarChar
+  description        String?           @db.Text
+  image_data         String?           @db.Text // For storing Base64 encoded image data
+  image_content_type String?           @db.VarChar(50) // For storing MIME type (e.g., 'image/jpeg')
+  treyler_project    treyler_project[]
 }
 
 model user {
@@ -142,19 +196,19 @@ model role {
 }
 
 model message {
-  id          Int         @id @default(autoincrement())
-  content     String
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  isRead      Boolean     @default(false)
+  id           Int         @id @default(autoincrement())
+  content      String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  isRead       Boolean     @default(false)
   message_type MessageType @default(text)
-  metadata    Json?       // JSON field to store additional data for specialized messages
-  
+  metadata     Json? // JSON field to store additional data for specialized messages
+
   // Relations
-  sender      user        @relation("sentMessages", fields: [senderId], references: [id])
-  senderId    BigInt      // Changed from Int to BigInt
-  recipient   user        @relation("receivedMessages", fields: [recipientId], references: [id])
-  recipientId BigInt      // Changed from Int to BigInt
+  sender      user   @relation("sentMessages", fields: [senderId], references: [id])
+  senderId    BigInt // Changed from Int to BigInt
+  recipient   user   @relation("receivedMessages", fields: [recipientId], references: [id])
+  recipientId BigInt // Changed from Int to BigInt
 
   @@index([senderId])
   @@index([recipientId])
@@ -175,4 +229,22 @@ enum MessageType {
   text
   permission_request
   system
+}
+
+enum InvoiceType {
+  Satis
+  Alis
+}
+
+enum TransactionType {
+  Ihracat
+  Ithalat
+  YurtIci
+}
+
+enum KDVRefundStatus {
+  Basvurulmadi
+  Basvuruldu
+  Onaylandi
+  Reddedildi
 }
