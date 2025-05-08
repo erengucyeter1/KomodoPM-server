@@ -13,9 +13,12 @@ import { ProjectsModule } from './projects/projects.module';
 import { StockModule } from './stock/stock.module';
 import { QrcodeModule } from './qrcode/qrcode.module';
 import { BillModule } from './bill/bill.module';
+import { InvoiceModule } from './invoice/invoice.module';
+import { InvoiceDetailModule } from './invoice-detail/invoice-detail.module';
+import { CustomerSupplierModule } from './customer-supplier/customer-supplier.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule, QrcodeModule, BillModule ], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
   providers: [AppService, PrismaService, UsersService, AuthorizationService],
 })
