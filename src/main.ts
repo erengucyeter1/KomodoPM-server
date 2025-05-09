@@ -25,6 +25,15 @@ async function bootstrap() {
     credentials: true,
   });
 
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // DTO sınıflarına otomatik dönüşüm sağlar
+      transformOptions: {
+        enableImplicitConversion: true, // İmplicit dönüşümü etkinleştirir
+      },
+    }),
+  );
+
   // Swagger yapılandırması
   const config = new DocumentBuilder()
     .setTitle('Komodo Project Management API')

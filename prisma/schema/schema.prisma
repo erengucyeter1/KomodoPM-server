@@ -10,21 +10,17 @@ datasource db {
 model Invoice {
   id                       Int              @id @default(autoincrement()) @map("FaturaID")
   createdAt                DateTime         @default(now()) @map("OlusturmaTarihi")
-  updatedAt                DateTime         @updatedAt @map("GuncellemeTarihi")
-  invoiceType              InvoiceType      @map("FaturaTipi")
+  updatedAt                DateTime?         @updatedAt @map("GuncellemeTarihi")
+  invoiceType              InvoiceType?     @map("FaturaTipi")
   invoiceNumber            String           @unique @map("FaturaNumarasi") @db.VarChar(255)
   invoiceDate              DateTime         @map("FaturaTarihi") @db.Date
   dueDate                  DateTime?        @map("VadeTarihi") @db.Date
-  customerSupplierId       Int              @map("MusteriTedarikciID")
+  partnerTaxNumber       String              @map("MusteriTedarikciID")
   isInternational          Boolean          @map("IsInternational")
   transactionType          TransactionType? @map("TransactionType")
   currency                 String?          @map("ParaBirimi") @db.VarChar(3)
-  totalAmount              Decimal          @map("ToplamTutar") @db.Decimal(18, 2)
-  vatRate                  Decimal?         @map("KDVOrani") @db.Decimal(5, 2)
-  vatAmount                Decimal?         @map("KDVTutari") @db.Decimal(18, 2)
-  vatBalance               Decimal?         @map("KDVBakiye") @db.Decimal(18, 2)
-  isVatExempt              Boolean          @default(false) @map("IsKDVMuaf")
-  vatExemptionReason       String?          @map("KDVMuafiyetNedeni") @db.Text
+  totalAmount              Decimal?          @map("ToplamTutar") @db.Decimal(18, 2)
+  
   customsDeclarationNumber String?          @map("GümrükBeyannameNumarası") @db.VarChar(255)
   exportCountryCode        String?          @map("IhracatUlkeKodu") @db.VarChar(2)
   importCountryCode        String?          @map("IthalatUlkeKodu") @db.VarChar(2)
@@ -41,7 +37,6 @@ model Invoice {
   upload_kdv_period                String?            @map("BelYuklendigiKDVDonem") @db.VarChar
   expense_allocation_id            Int?               @map("YuklenimTuru")
   // Relations
-  customerSupplier                 CustomerSupplier   @relation(fields: [customerSupplierId], references: [id])
   invoiceDetails                   InvoiceDetail[]
   project_expenses                 project_expenses[]
 
@@ -57,7 +52,15 @@ model InvoiceDetail {
   totalAmount  Decimal  @map("ToplamTutar") @db.Decimal(18, 2)
   description  String?  @map("Aciklama") @db.Text
   createdAt    DateTime @default(now()) @map("OlusturmaTarihi")
-  updatedAt    DateTime @updatedAt @map("GuncellemeTarihi")
+  updatedAt    DateTime? @updatedAt @map("GuncellemeTarihi")
+
+  isVatExempt              Boolean          @default(false) @map("IsKDVMuaf")
+  vatExemptionReason       String?          @map("KDVMuafiyetNedeni") @db.Text
+
+  vatRate                  Decimal?         @map("KDVOrani") @db.Decimal(5, 2)
+  vatAmount                Decimal?         @map("KDVTutari") @db.Decimal(18, 2)
+  vatBalance               Decimal?         @map("KDVBakiye") @db.Decimal(18, 2)
+
 
   // Relations
   invoice Invoice @relation(fields: [invoiceId], references: [id])
@@ -78,9 +81,6 @@ model CustomerSupplier {
   isSupplier  Boolean  @default(false) @map("TedarikciMi")
   createdAt   DateTime @default(now()) @map("OlusturmaTarihi")
   updatedAt   DateTime @updatedAt @map("GuncellemeTarihi")
-
-  // Relations
-  invoices Invoice[]
 
   @@map("MusteriTedarikciler")
 }
