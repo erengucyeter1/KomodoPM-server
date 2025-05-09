@@ -36,7 +36,6 @@ model Invoice {
   vatRefundApplicationDate DateTime?        @map("KDVIadeBasvuruTarihi") @db.Date
   invoiceFilePath          String?          @map("FaturaDosyaYolu") @db.VarChar(255)
 
-  ggb_id                           String?            @map("GGBTescilNo") @db.VarChar
   return_eligible_transaction_type String?            @map("IadeHakkiDogIslemTuru") @db.VarChar
   deduction_kdv_period             String?            @map("IndirimKDVDonem") @db.VarChar
   upload_kdv_period                String?            @map("BelYuklendigiKDVDonem") @db.VarChar
