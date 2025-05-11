@@ -8,7 +8,7 @@ import Decimal from "decimal.js";
 export class InvoiceDetailService {
 
   constructor(private readonly prisma: PrismaService) {}
-  create(createInvoiceDetailDto: CreateInvoiceDetailDto) {
+  async create(createInvoiceDetailDto: CreateInvoiceDetailDto) {
     
 
     // is there an valid invoice with this id
@@ -26,7 +26,7 @@ export class InvoiceDetailService {
 
 
 
-    return this.prisma.invoiceDetail.create({
+    const invoiceDetail = await this.prisma.invoiceDetail.create({
       data: {
         invoiceNumber: createInvoiceDetailDto.invoiceNumber,
         product_code: createInvoiceDetailDto.product_code,  
@@ -40,6 +40,21 @@ export class InvoiceDetailService {
         vatAmount: createInvoiceDetailDto.vatAmount,
       }
     });
+
+  const product = await this.prisma.product.findUnique({
+      where: { stock_code: createInvoiceDetailDto.product_code },
+      select: { balance: true },
+    });
+
+    if (product) {
+      const newBalance = product.balance.plus(createInvoiceDetailDto.quantity); // Prisma Decimal ise .plus kullanılır
+      await this.prisma.product.update({
+        where: { stock_code: createInvoiceDetailDto.product_code },
+        data: { balance: newBalance },
+      });
+    }
+
+    return invoiceDetail;
   }
 
   findAll() {

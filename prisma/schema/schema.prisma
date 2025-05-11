@@ -90,7 +90,7 @@ model Product {
   measurement_unit measurement_units
   stock_code       String            @id @db.VarChar
   description      String            @db.VarChar
-  balance          Float             @default(0.0)
+  balance          Decimal           @db.Decimal(10, 2) @default(0.0)
 
   // İlişkiler
   project_expenses project_expenses[]
