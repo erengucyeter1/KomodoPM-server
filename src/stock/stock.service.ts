@@ -3,6 +3,7 @@ import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
 
 @Injectable()
 export class StockService {
@@ -97,8 +98,8 @@ export class StockService {
     };
   }
 
-  findOne(stock_code: string) {
-    return this.prismaService.product.findUnique({
+  async findOne(stock_code: string) {
+    const product = await this.prismaService.product.findUnique({
       where: {
         stock_code: stock_code,
       },
@@ -109,7 +110,13 @@ export class StockService {
         balance: true,
       },
     });
-  }
+
+    if (!product) {
+      throw new BadRequestException('Ürün bulunamadı');
+    }
+
+    return product;
+}
 
   update(stock_code: string, updateStockDto: UpdateStockDto) {
     return this.prismaService.product.update({

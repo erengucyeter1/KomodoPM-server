@@ -45,7 +45,7 @@ model Invoice {
 
 model InvoiceDetail {
   id           Int      @id @default(autoincrement()) @map("FaturaDetayID")
-  invoiceId    Int      @map("FaturaID")
+  invoiceNumber String      @map("FaturaID")
   product_code String   @map("UrunKOD") @db.VarChar(255)
   quantity     Decimal  @map("Miktar") @db.Decimal(10, 2)
   unitPrice    Decimal  @map("BirimFiyat") @db.Decimal(18, 2)
@@ -63,7 +63,7 @@ model InvoiceDetail {
 
 
   // Relations
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice Invoice @relation(fields: [invoiceNumber], references: [invoiceNumber])
   product Product @relation(fields: [product_code], references: [stock_code])
 
   @@map("FaturaDetaylari")
