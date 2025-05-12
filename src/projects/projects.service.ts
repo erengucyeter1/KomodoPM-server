@@ -68,9 +68,6 @@ export class ProjectsService {
           user: true,
           treyler_type: true,
           project_expenses: {
-            include: {
-              expense_allocation_type: true,
-            },
             orderBy: {
               created_at: 'desc',
             },
