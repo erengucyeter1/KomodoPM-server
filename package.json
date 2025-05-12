@@ -25,7 +25,8 @@
     "seed": "ts-node prisma/scripts/seed.ts",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
-    "db:setup": "npm run prisma:generate && npm run prisma:migrate &&  npm run apply-triggers  && npm run seed"
+    "db:setup": "npm run prisma:generate && npm run prisma:migrate &&  npm run apply-triggers  && npm run seed",
+    "db:seed":" npm run apply-triggers  && npm run seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
