@@ -38,7 +38,6 @@ model Invoice {
   expense_allocation_id            Int?               @map("YuklenimTuru")
   // Relations
   invoiceDetails                   InvoiceDetail[]
-  project_expenses                 project_expenses[]
 
   @@map("Faturalar")
 }
@@ -91,6 +90,7 @@ model Product {
   stock_code       String            @id @db.VarChar
   description      String            @db.VarChar
   balance          Decimal           @db.Decimal(10, 2) @default(0.0)
+  unit_weight      Decimal           @db.Decimal(10, 2) @default(0.0)
 
   // İlişkiler
   project_expenses project_expenses[]
@@ -103,35 +103,21 @@ model project_expenses {
   id         BigInt   @id @default(autoincrement())
   created_at DateTime @default(now()) @db.Timestamptz(6)
   creator_id BigInt
-  bill_date  DateTime @db.Date
-  bill_id    String   @db.VarChar
 
-  material_code        String  @db.VarChar
-  material_description String  @db.VarChar
-  material_count       Decimal @db.Decimal
-
-  tax_cost             Decimal @db.Decimal
-  goods_or_service_tax Decimal @db.Decimal
-
-  total_cost   Decimal @db.Decimal
-  total_weight Decimal @db.Decimal
-  total_kdv    Decimal @db.Decimal
-  used_kdv     Decimal @db.Decimal
+  product_code        String  @db.VarChar
+  quantity       Decimal @db.Decimal
 
   project_id BigInt
 
-  invoice                   Invoice                  @relation(fields: [bill_id], references: [invoiceNumber], onDelete: NoAction)
   user                      user                     @relation(fields: [creator_id], references: [id], onDelete: NoAction)
-  product                   Product                  @relation(fields: [material_code], references: [stock_code], onDelete: NoAction)
+  product                   Product                  @relation(fields: [product_code], references: [stock_code], onDelete: NoAction)
   treyler_project           treyler_project          @relation(fields: [project_id], references: [id], onDelete: NoAction)
-  expense_allocation_type   expense_allocation_type? @relation(fields: [expense_allocation_typeId], references: [id])
-  expense_allocation_typeId Int?
+ 
 }
 
 model expense_allocation_type {
   id               Int                @id @default(autoincrement())
   description      String             @db.VarChar
-  project_expenses project_expenses[]
 }
 
 model treyler_project {
