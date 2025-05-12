@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { TreylersService } from './treylers.service';
-import { CreateTreylerDto } from './dto/create-treyler.dto';
-import { UpdateTreylerDto } from './dto/update-treyler.dto';
+import { TrailersService } from './trailers.service';
+import { CreateTreylerDto } from './dto/create-trailers.dto';
+import { UpdateTreylerDto } from './dto/update-trailers.dto';
 
-@Controller('treylers')
-export class TreylersController {
-  constructor(private readonly treylersService: TreylersService) {}
+@Controller('trailers')
+export class TrailersContoller {
+  constructor(private readonly treylersService: TrailersService) {}
 
   @Post()
   create(@Body() createTreylerDto: CreateTreylerDto) {

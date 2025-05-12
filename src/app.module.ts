@@ -8,7 +8,7 @@ import { UserModule } from './users/users.module';
 import { AuthorizationModule } from './authorization/authorization.module';
 import { AuthorizationService } from './authorization/authorization.service';
 import {ChatModule} from './chat/chat.module';
-import { TreylersModule } from './treylers/treylers.module';
+import { TrailersModule } from './trailers/trailers.module';
 import { ProjectsModule } from './projects/projects.module';
 import { StockModule } from './stock/stock.module';
 import { QrcodeModule } from './qrcode/qrcode.module';
@@ -20,7 +20,7 @@ import { ProjectExpenseModule } from './project-expense/project-expense.module';
 import { ReportModule } from './report/report.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TreylersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule, ProjectExpenseModule, ReportModule ], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TrailersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule, ProjectExpenseModule, ReportModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
   providers: [AppService, PrismaService, UsersService, AuthorizationService],
 })

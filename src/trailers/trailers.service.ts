@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateTreylerDto } from './dto/create-treyler.dto';
-import { UpdateTreylerDto } from './dto/update-treyler.dto';
+import { CreateTreylerDto } from './dto/create-trailers.dto';
+import { UpdateTreylerDto } from './dto/update-trailers.dto';
 
 @Injectable()
-export class TreylersService {
+export class TrailersService {
   constructor(private prisma: PrismaService) {}
   
   async create(createTreylerDto: CreateTreylerDto) {
