@@ -26,7 +26,8 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
     "db:setup": "npm run prisma:generate && npm run prisma:migrate &&  npm run apply-triggers  && npm run seed",
-    "db:seed": " npm run apply-triggers  && npm run seed"
+    "db:seed": " npm run apply-triggers  && npm run seed",
+    "rawQuery": "node ./prisma/scripts/raw-sql.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
