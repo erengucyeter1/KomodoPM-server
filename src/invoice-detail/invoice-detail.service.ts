@@ -31,6 +31,7 @@ export class InvoiceDetailService {
         invoiceNumber: createInvoiceDetailDto.invoiceNumber,
         product_code: createInvoiceDetailDto.product_code,  
         quantity: createInvoiceDetailDto.quantity,
+        quantityBalance: createInvoiceDetailDto.quantity,
         unitPrice: createInvoiceDetailDto.unitPrice,
         totalAmount: this.calculateTotalAmount(createInvoiceDetailDto),
         description: createInvoiceDetailDto.description,

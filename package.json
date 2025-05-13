@@ -42,6 +42,7 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "canvas": "^3.1.0",
+    "date-fns": "^4.1.0",
     "decimal.js": "^10.5.0",
     "mo": "^1.7.3",
     "passport": "^0.7.0",

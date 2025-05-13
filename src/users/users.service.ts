@@ -40,7 +40,7 @@ export class UsersService {
         // Eğer şifre güncellenmişse, onu da hash'le
         if (params.password) {
             const roundsOfHashing = process.env.RoundsOfHashing;
-            cleanData.hash_password = await bcrypt.hash(
+            cleanData.password = await bcrypt.hash(
                 params.password,
                 Number(roundsOfHashing)
             );

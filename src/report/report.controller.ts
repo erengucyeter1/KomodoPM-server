@@ -1,11 +1,11 @@
-import { Controller, Get, Param, Res, HttpStatus, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Res, ParseIntPipe, HttpStatus, StreamableFile } from '@nestjs/common';
 import { ReportService } from './report.service';
 import type { Response } from 'express'; // Express'ten Response tipini import et
 
-@Controller('report')
+@Controller('reports')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
-
+/*
   @Get('project/:projectId')
   async getProjectReport(
     @Param('projectId') projectId: string,
@@ -26,22 +26,52 @@ export class ReportController {
 
     } catch (error) {
       console.error('Error in ReportController while generating report:', error);
-      // Hata durumunda, istemciye uygun bir hata yanıtı göndermek önemlidir.
-      // @Res({ passthrough: true }) kullandığımız için, burada doğrudan res ile yanıtı değiştiremeyiz.
-      // Bu durumda, NestJS'in standart hata filtreleme mekanizmasının devreye girmesi için hatayı yeniden fırlatabiliriz
-      // veya özel bir HttpException fırlatabiliriz.
-      // Şimdilik, basitlik adına hatayı yeniden fırlatalım, bu genellikle 500 Internal Server Error ile sonuçlanır.
-      // Daha kontrollü bir hata için:
-      // throw new HttpException('Rapor oluşturulurken sunucuda bir hata oluştu.', HttpStatus.INTERNAL_SERVER_ERROR);
-      
-      // Eğer @Res() res: Response kullanıp passthrough: false (varsayılan) yapsaydık:
-      // res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      //   statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      //   message: 'Rapor oluşturulurken bir hata oluştu.',
-      //   error: error.message,
-      // });
-      // return; // void döndürmek için
       throw error; // NestJS'in global hata yakalayıcısına devret
+    }
+  } */
+/*
+  @Get('v2/project/:projectId')
+  async getProjectReportV2(
+    @Param('projectId') projectId: number,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+
+    this.reportService.findInvoiceDetailsByProjectId(projectId)
+
+    return null;
+
+  }*/
+
+  @Get('project/:projectId/kdv-iade')
+  async getProjectKdvReturnReport(
+    @Param('projectId') projectIdString: string,
+    @Res({ passthrough: true }) res: Response, // passthrough: true ekle
+  ): Promise<StreamableFile> { // Dönüş tipini Promise<StreamableFile> yap
+    try {
+      const pdfBuffer = await this.reportService.generateReportAsBuffer(projectIdString);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="kdv_iade_raporu_proje_${projectIdString}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length.toString()); // Content-Length ekle
+
+      return new StreamableFile(pdfBuffer); // StreamableFile olarak döndür
+
+    } catch (error) {
+      console.error('Rapor oluşturulurken kontrolcüde hata (kdv-iade):', error);
+      // @Res({ passthrough: true }) kullanıldığında, NestJS'in global hata
+      // yakalayıcısının devreye girmesi için hatayı yeniden fırlatmak daha iyidir.
+      // Özel bir yanıt göndermek istiyorsanız, passthrough: true olmadan
+      // res.status().send() kullanmanız gerekir.
+      throw error;
+      /*
+      // Eski hata yönetimi (passthrough: true ile bu kısım genellikle kullanılmaz)
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: error.message || 'Rapor oluşturulurken bir sunucu hatası oluştu.',
+      });
+      // Bu durumda Promise<StreamableFile> yerine Promise<void> veya any dönebilirsiniz
+      // ama StreamableFile ile tutarlı olması için hatayı fırlatmak daha iyi.
+      */
     }
   }
 }
