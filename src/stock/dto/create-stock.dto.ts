@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsEnum, IsString } from 'class-validator';
+import { IsNotEmpty, IsEnum, IsString,IsOptional,IsBoolean } from 'class-validator';
 import { measurement_units } from '@prisma/client';
 
 export class CreateStockDto {
@@ -14,6 +14,11 @@ export class CreateStockDto {
 
     @IsString()
     description: string;    
+
+    @IsOptional()
+    @IsBoolean()
+    isService: boolean;
+
 
 
 

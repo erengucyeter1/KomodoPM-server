@@ -23,10 +23,25 @@ async function main() {
       console.log(`Deleted ${deletedInvoices} records from Invoice table.`);
       
       console.log('All Invoice records and their details have been deleted successfully.');
-    } else {
+    }else if (queryName === 'deleteAllProducts') {
+      console.log('Deleting all records from Product table...');
+      const deletedProducts = await prisma.$executeRaw`DELETE FROM "Products"`;
+      console.log(`Deleted ${deletedProducts} records from Product table.`);
+      
+      console.log('All Product records have been deleted successfully.');
+    }else if (queryName === 'deleteProjectExpenses') {
+      console.log('Deleting all records from ProjectExpenses table...');
+      const deletedProjectExpenses = await prisma.$executeRaw`DELETE FROM "project_expenses"`;
+      console.log(`Deleted ${deletedProjectExpenses} records from ProjectExpenses table.`);
+      
+      console.log('All ProjectExpenses records have been deleted successfully.');
+    }
+    
+    else {
       console.error(`Unknown query: ${queryName}`);
       process.exit(1);
     }
+    
   } catch (error) {
     console.error('Error executing SQL query:', error);
     throw error;

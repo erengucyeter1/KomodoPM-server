@@ -1,18 +1,36 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateInvoiceDetailDto } from './dto/create-invoice-detail.dto';
+import { StockService } from '../stock/stock.service';
 // UpdateInvoiceDetailDto şu an bu metodda kullanılmıyor, gerekirse import edilebilir.
 // import { UpdateInvoiceDetailDto } from './dto/update-invoice-detail.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Decimal from "decimal.js";
+import { measurement_units } from '@prisma/client';
+import { CreateStockDto } from '../stock/dto/create-stock.dto';
 
 @Injectable()
 export class InvoiceDetailService {
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly stockService: StockService) {}
 
   async create(createInvoiceDetailDto: CreateInvoiceDetailDto) {
     const quantity = new Decimal(createInvoiceDetailDto.quantity);
     const unitPrice = new Decimal(createInvoiceDetailDto.unitPrice);
+    const isService = createInvoiceDetailDto.isService;
+
+    if (isService) {
+      const createStockDto: CreateStockDto = {
+        stockCode: createInvoiceDetailDto.product_code,
+        mesurementUnit: measurement_units.ADET,
+        description: createInvoiceDetailDto.description,
+        isService: true,
+      };
+      const product = await this.stockService.create(createStockDto);
+
+      if(!product){
+        throw new InternalServerErrorException("Ürün oluşturulamadı");
+      }
+    }
 
     // KDV Hariç Satır Toplamını Hesapla
     const lineTotalAmountWithoutVat = unitPrice.mul(quantity);

@@ -97,6 +97,7 @@ model Product {
   description      String            @db.VarChar
   balance          Decimal           @db.Decimal(10, 2) @default(0.0)
   unit_weight      Decimal           @db.Decimal(10, 2) @default(0.0)
+  isService        Boolean           @default(false)
 
   // İlişkiler
   project_expenses project_expenses[]

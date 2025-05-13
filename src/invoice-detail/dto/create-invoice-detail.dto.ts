@@ -41,4 +41,9 @@ export class CreateInvoiceDetailDto {
     @Transform(({ value }) => value !== undefined ? Number(value) : value)
     @IsNumber()
     vatAmount: number;
+
+
+    @IsBoolean()
+    @IsNotEmpty()
+    isService: boolean;
 }

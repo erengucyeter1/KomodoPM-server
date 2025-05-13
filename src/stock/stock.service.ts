@@ -39,20 +39,30 @@ export class StockService {
     sortBy?: string;
     sortOrder?: 'ASC' | 'DESC';
     filter?: string;
+    isServiceOnly?: boolean;
   }) {
-    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter } = options;
+    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter, isServiceOnly } = options;
     
     // Build where condition for filtering
     let where: Prisma.ProductWhereInput = {};
+    const conditions: Prisma.ProductWhereInput[] = [];
+
+    if (isServiceOnly) {
+      conditions.push({ isService: true });
+    }
     
     if (filter) {
-      // Use only fields that are string-searchable
-      where = {
+      // Use only fields that are string-searchable and apply case-insensitive search
+      conditions.push({
         OR: [
-          { stock_code: { contains: filter } },
-          { description: { contains: filter } }
+          { stock_code: { contains: filter, mode: 'insensitive' } },
+          { description: { contains: filter, mode: 'insensitive' } }
         ]
-      };
+      });
+    }
+
+    if (conditions.length > 0) {
+      where = { AND: conditions };
     }
     
     // Calculate skip for pagination
