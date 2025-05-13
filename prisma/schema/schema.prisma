@@ -19,8 +19,10 @@ model Invoice {
   isInternational          Boolean          @map("IsInternational")
   transactionType          TransactionType? @map("TransactionType")
   currency                 String?          @map("ParaBirimi") @db.VarChar(3)
-  totalAmount              Decimal?          @map("ToplamTutar") @db.Decimal(18, 2)
-  
+  totalAmountWithoutVat       Decimal      @default(0.0)  @map("ToplamTutarKdvHaric") @db.Decimal(18, 3) 
+  totalVatAmount            Decimal        @default(0.0) @map("ToplamKDV")     @db.Decimal(18, 3) 
+
+
   customsDeclarationNumber String?          @map("GümrükBeyannameNumarası") @db.VarChar(255)
   exportCountryCode        String?          @map("IhracatUlkeKodu") @db.VarChar(2)
   importCountryCode        String?          @map("IthalatUlkeKodu") @db.VarChar(2)

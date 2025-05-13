@@ -9,10 +9,12 @@ export interface KdvDeductionLogEntry {
   projectId: number;
 
   invoiceId: number;
-  invoiceNumber: string;
-  invoiceDate: Date;
+  invoiceNumber: string; // Alış Faturasının Sıra No'su
+  invoiceDate: Date; // Alış Faturasının Tarihi
   invoiceCurrency: string | null;
-  invoicePartnerTaxNumber: string;
+  invoicePartnerTaxNumber: string; // Satıcının Vergi Kimlik Numarası/TC Kimlik Numarası
+  invoiceTotalAmountWithoutVat: Decimal; // Alış Faturasının KDV Hariç Tutarı (Faturanın Toplamı)
+  invoiceTotalVatAmount: Decimal; // Alış Faturasının KDV'si (Faturanın Toplamı)
 
   invoiceDetailId: number;
   originalInvoiceDetailQuantity: Decimal;
@@ -20,22 +22,22 @@ export interface KdvDeductionLogEntry {
   invoiceDetailVatRate: Decimal | null;
 
   productCode: string;
-  productName: string;
-  productMeasurementUnit: string; // measurement_units enumundan gelecek
-  productUnitWeight: Decimal;
+  productName: string; // Alınan Mal ve/veya Hizmetin Cinsi
+  productMeasurementUnit: string;
+  productUnitWeight: Decimal; // Yüklenilen Malın ağırlığı (hesaplanacak)
 
-  quantityDeducted: Decimal;
-  deductedValueKdvExclusive: Decimal;
-  deductedVatAmount: Decimal;
+  quantityDeducted: Decimal; // Alınan Mal ve/veya Hizmetin Miktarı (kullanılan)
+  deductedValueKdvExclusive: Decimal; // Kullanılan miktarın KDV hariç değeri
+  deductedVatAmount: Decimal; // Bünyeye Giren Mal ve/veya Hizmetin KDV'si (kullanılan miktarın KDV'si)
   newBalanceOnInvoiceDetail: Decimal;
 
   deductionTimestamp: Date;
 
-  ggbTescilNo?: string | null;
-  iadeHakkiDoguranIslemTuru?: string | null;
-  yuklenimTuruId?: number | null;
-  indirimKDVDönemi?: string | null;
-  yuklenimKDVDönemi?: string | null;
+  ggbTescilNo?: string | null; // GGB Tescil No'su (Alış İthalat İse)
+  iadeHakkiDoguranIslemTuru?: string | null; // Belgeye İlişkin İade Hakkı Doğuran İşlem Türü
+  yuklenimTuruId?: number | null; // Yüklenim Türü (ID, açıklaması ayrıca çekilecek)
+  indirimKDVDönemi?: string | null; // Belgenin İndirime Konu Edildiği KDV Dönemi
+  yuklenimKDVDönemi?: string | null; // Belgenin Yüklenildiği KDV Dönemi
 }
 
 @Injectable()
@@ -108,6 +110,9 @@ export class ReportService {
             const deductedValue = quantityToDeductThisDetail.mul(detail.unitPrice);
             const vatAmountCalculated = deductedValue.mul(vatRateFromDetail).div(100);
 
+            const invoiceTotalAmountWithoutVat = new Decimal(detail.invoice.totalAmountWithoutVat || 0);
+            const invoiceTotalVatAmount = new Decimal(detail.invoice.totalVatAmount || 0);
+
             deductionLog.push({
               projectId,
               invoiceId: detail.invoice.id,
@@ -115,6 +120,8 @@ export class ReportService {
               invoiceDate: detail.invoice.invoiceDate,
               invoiceCurrency: detail.invoice.currency,
               invoicePartnerTaxNumber: detail.invoice.partnerTaxNumber,
+              invoiceTotalAmountWithoutVat: invoiceTotalAmountWithoutVat,
+              invoiceTotalVatAmount: invoiceTotalVatAmount,
               invoiceDetailId: detail.id,
               originalInvoiceDetailQuantity: new Decimal(detail.quantity),
               invoiceDetailUnitPrice: new Decimal(detail.unitPrice),
@@ -162,7 +169,6 @@ export class ReportService {
 
     if (kdvDeductionLogs.length === 0) {
       const htmlContent = `<html><body><h1>KDV İade Raporu (Proje: ${projectId})</h1><p>Bu proje için KDV iadesine tabi gider bulunamadı veya ilgili fatura detaylarında yeterli bakiye yoktu.</p></body></html>`;
-      // PDF oluşturma (basit)
       const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
       const page = await browser.newPage();
       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
@@ -172,42 +178,38 @@ export class ReportService {
     }
 
     const reportData = await Promise.all(kdvDeductionLogs.map(async (log, index) => {
-      let yuklenimTuruDescription = 'Belirtilmemiş';
+      let yuklenimTuruDescription = '';
       if (log.yuklenimTuruId) {
         const yuklenimType = await this.prisma.expense_allocation_type.findUnique({
           where: { id: log.yuklenimTuruId },
         });
-        yuklenimTuruDescription = yuklenimType?.description || 'Belirtilmemiş';
+        yuklenimTuruDescription = yuklenimType?.description || '';
       }
-      
-      // Satıcı bilgilerini partnerTaxNumber ile CustomerSupplier tablosundan çekebilirsiniz.
-      // Örnek: const satici = await this.prisma.customerSupplier.findUnique({ where: { taxNumber: log.invoicePartnerTaxNumber } });
-      // const saticiAdiUnvani = satici?.title || `Partner: ${log.invoicePartnerTaxNumber}`;
 
-      const kdvHaricTutarStr = `${log.deductedValueKdvExclusive.toFixed(2)} ${log.invoiceCurrency || ''}`;
-      const kdvTutariStr = `${log.deductedVatAmount.toFixed(2)} ${log.invoiceCurrency || ''}`;
-      const bunyeyeGirenKDVStr = kdvTutariStr; // Bu alanın hesaplama mantığı iş kurallarınıza göre değişebilir.
+      const alisFaturasininKdvHaricTutariStr = `${log.invoiceTotalAmountWithoutVat.toFixed(2)} ${log.invoiceCurrency || ''}`;
+      const alisFaturasininKdvStr = `${log.invoiceTotalVatAmount.toFixed(2)} ${log.invoiceCurrency || ''}`;
+      const bunyeyeGirenKDVStr = `${log.deductedVatAmount.toFixed(2)} ${log.invoiceCurrency || ''}`;
       const malHizmetMiktariStr = `${log.quantityDeducted.toString()} ${log.productMeasurementUnit}`;
       const yuklenilenMalAgirligiStr = log.productUnitWeight.mul(log.quantityDeducted).gt(0)
-        ? `${log.productUnitWeight.mul(log.quantityDeducted).toFixed(2)} kg` // Birim ağırlığın kg olduğunu varsayıyoruz.
-        : '-';
+        ? `${log.productUnitWeight.mul(log.quantityDeducted).toFixed(2)} kg`
+        : '';
 
       return {
         siraNo: index + 1,
         alisFaturaTarihi: format(log.invoiceDate, 'dd.MM.yyyy'),
         alisFaturaSiraNo: log.invoiceNumber,
-        saticiAdiUnvani: `Partner VKN: ${log.invoicePartnerTaxNumber}`, // Gerçek satıcı adı için lookup yapılmalı
+        saticiAdiUnvani: log.invoicePartnerTaxNumber,
         saticiVergiNoTCNo: log.invoicePartnerTaxNumber,
         malHizmetCinsi: log.productName,
         malHizmetMiktari: malHizmetMiktariStr,
-        kdvHaricTutar: kdvHaricTutarStr,
-        kdvTutari: kdvTutariStr,
+        kdvHaricTutar: alisFaturasininKdvHaricTutariStr,
+        kdvTutari: alisFaturasininKdvStr,
         bunyeyeGirenKDV: bunyeyeGirenKDVStr,
-        ggbTescilNo: log.ggbTescilNo || '-',
-        iadeHakkiDoguranIslemTuru: log.iadeHakkiDoguranIslemTuru || '-',
+        ggbTescilNo: log.ggbTescilNo || '',
+        iadeHakkiDoguranIslemTuru: log.iadeHakkiDoguranIslemTuru || '',
         yuklenimTuru: yuklenimTuruDescription,
-        indirimKDVDönemi: log.indirimKDVDönemi || '-',
-        yuklenimKDVDönemi: log.yuklenimKDVDönemi || '-',
+        indirimKDVDönemi: log.indirimKDVDönemi || '',
+        yuklenimKDVDönemi: log.yuklenimKDVDönemi || '',
         yuklenilenMalAgirligi: yuklenilenMalAgirligiStr,
       };
     }));
@@ -218,7 +220,7 @@ export class ReportService {
     try {
       browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--font-render-hinting=none'], // Font render ayarı eklendi
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--font-render-hinting=none'],
       });
       const page = await browser.newPage();
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
@@ -264,8 +266,7 @@ export class ReportService {
     const firmaAdi = "ÖRNEK FİRMA A.Ş.";
     const vergiDairesi = "ÖRNEK VERGİ DAİRESİ";
     const vergiNumarasi = "1234567890";
-    const raporDonemi = format(new Date(), "MMMM yyyy", { locale: tr }); // require yerine import edilen 'tr' locale'ini kullanın
-
+    const raporDonemi = format(new Date(), "MMMM yyyy", { locale: tr });
 
     return `
       <!DOCTYPE html>
@@ -274,11 +275,11 @@ export class ReportService {
           <meta charset="UTF-8">
           <title>KDV İade Raporu - Yüklenilen KDV Listesi (Proje: ${projectId})</title>
           <style>
-              body { font-family: 'DejaVu Sans', Arial, sans-serif; margin: 15px; font-size: 7px; } /* Font güncellendi */
+              body { font-family: 'DejaVu Sans', Arial, sans-serif; margin: 15px; font-size: 7px; }
               h1 { text-align: center; margin-bottom: 10px; font-size: 12px; }
               h2 { text-align: center; margin-bottom: 15px; font-size: 10px; font-weight: normal; }
-              table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; } /* table-layout eklendi */
-              th, td { border: 1px solid #ccc; padding: 3px; text-align: left; word-wrap: break-word; } /* word-wrap eklendi */
+              table { width: 100%; border-collapse: collapse; margin-bottom: 15px; table-layout: fixed; }
+              th, td { border: 1px solid #ccc; padding: 3px; text-align: left; word-wrap: break-word; overflow-wrap: break-word; }
               th { background-color: #f0f0f0; font-size: 6.5px; font-weight: bold; }
               .text-center { text-align: center; }
               .text-right { text-align: right; }
@@ -295,27 +296,26 @@ export class ReportService {
           </div>
 
           <h1>KDV İADE TALEBİNE İLİŞKİN YÜKLENİLEN KDV LİSTESİ</h1>
-          <h2>(Proje ID: ${projectId} - İhraç Edilen Malların Üretiminde Kullanılan Alımlar)</h2>
 
           <table>
             <thead>
               <tr>
-                <th style="width: 2%;">Sıra No</th>
-                <th style="width: 5%;">Alış F. Tarihi</th>
-                <th style="width: 7%;">Alış F. Sıra No</th>
-                <th style="width: 10%;">Satıcı Adı/Ünvanı</th>
-                <th style="width: 7%;">Satıcı VKN/TCKN</th>
-                <th style="width: 12%;">Mal/Hizmet Cinsi</th>
-                <th style="width: 6%;">Miktarı</th>
-                <th style="width: 7%;" class="text-right">KDV Hariç Tutar</th>
-                <th style="width: 7%;" class="text-right">KDV Tutarı</th>
-                <th style="width: 7%;" class="text-right">Bünyeye Giren KDV</th>
-                <th style="width: 6%;">GGB No</th>
-                <th style="width: 8%;">İade H.D. İşlem Türü</th>
-                <th style="width: 6%;">Yüklenim Türü</th>
-                <th style="width: 5%;">İnd. KDV Dön.</th>
-                <th style="width: 5%;">Yük. KDV Dön.</th>
-                <th style="width: 5%;">Mal Ağırlığı</th>
+                <th style="width: 3%;">Sıra No</th>
+                <th style="width: 6%;">Alış Faturasının Tarihi</th>
+                <th style="width: 7%;">Alış Faturasının Sıra No'su</th>
+                <th style="width: 10%;">Satıcının Adı-Soyadı/Ünvanı</th>
+                <th style="width: 7%;">Satıcının Vergi Kimlik Numarası/TC Kimlik Numarası</th>
+                <th style="width: 11%;">Alınan Mal ve/veya Hizmetin Cinsi</th>
+                <th style="width: 6%;">Alınan Mal ve/veya Hizmetin Miktarı</th>
+                <th style="width: 7%;" class="text-right">Alış Faturasının KDV Hariç Tutarı</th>
+                <th style="width: 7%;" class="text-right">Alış Faturasının KDV'si</th>
+                <th style="width: 7%;" class="text-right">Bünyeye Giren Mal ve/veya Hizmetin KDV'si</th>
+                <th style="width: 6%;">GGB Tescil No'su (Alış İthalat İse)</th>
+                <th style="width: 7%;">Belgeye İlişkin İade Hakkı Doğuran İşlem Türü</th>
+                <th style="width: 5%;">Yüklenim Türü</th>
+                <th style="width: 5%;">Belgenin İndirime Konu Edildiği KDV Dönemi</th>
+                <th style="width: 5%;">Belgenin Yüklenildiği KDV Dönemi</th>
+                <th style="width: 5%;">Yüklenilen Malın ağırlığı</th>
               </tr>
             </thead>
             <tbody>
@@ -331,8 +331,4 @@ export class ReportService {
       </html>
     `;
   }
-
-  // Eski metodlar (findInvoiceDetailsByProjectId, useKDVBalance vb.)
-  // bu yeni yapıya göre gereksiz kaldıysa kaldırılabilir veya özel (private) hale getirilebilir.
-  // Şimdilik dokunmuyorum, ancak kod temizliği sırasında gözden geçirilmelidir.
 }

@@ -12,7 +12,7 @@ export class InvoiceDetailController {
     return this.invoiceDetailService.create(createInvoiceDetailDto);
   }
 
-  @Get()
+  /*@Get()
   findAll() {
     return this.invoiceDetailService.findAll();
   }
@@ -30,5 +30,5 @@ export class InvoiceDetailController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.invoiceDetailService.remove(+id);
-  }
+  } */
 }

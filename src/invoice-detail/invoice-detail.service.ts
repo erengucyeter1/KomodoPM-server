@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateInvoiceDetailDto } from './dto/create-invoice-detail.dto';
-import { UpdateInvoiceDetailDto } from './dto/update-invoice-detail.dto';
+// UpdateInvoiceDetailDto şu an bu metodda kullanılmıyor, gerekirse import edilebilir.
+// import { UpdateInvoiceDetailDto } from './dto/update-invoice-detail.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Decimal from "decimal.js";
 
@@ -8,78 +9,108 @@ import Decimal from "decimal.js";
 export class InvoiceDetailService {
 
   constructor(private readonly prisma: PrismaService) {}
+
   async create(createInvoiceDetailDto: CreateInvoiceDetailDto) {
-    
+    const quantity = new Decimal(createInvoiceDetailDto.quantity);
+    const unitPrice = new Decimal(createInvoiceDetailDto.unitPrice);
 
-    // is there an valid invoice with this id
-    const invoice = this.prisma.invoice.findUnique({
-      where: {
-        invoiceNumber: createInvoiceDetailDto.invoiceNumber
-      }
-    });
+    // KDV Hariç Satır Toplamını Hesapla
+    const lineTotalAmountWithoutVat = unitPrice.mul(quantity);
 
-    if (!invoice) {
-            throw new BadRequestException('Bu numara ile fatura bulunamadı.');
-      
+    // KDV Tutarını Hesapla
+    let lineVatAmount = new Decimal(0);
+    if (createInvoiceDetailDto.vatRate && !createInvoiceDetailDto.isVatExempt) {
+      const vatRate = new Decimal(createInvoiceDetailDto.vatRate);
+      lineVatAmount = lineTotalAmountWithoutVat.mul(vatRate).div(100);
     }
+    // Not: Eğer DTO'da `vatAmount` alanı varsa ve KDV'den muaf değilse,
+    // ve bu DTO'dan gelen `vatAmount`'ı kullanmak isterseniz, buraya ek bir koşul eklenebilir.
+    // Mevcut mantık, KDV'yi `vatRate` üzerinden hesaplamayı tercih ediyor.
 
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        // 1. Faturanın varlığını kontrol et
+        const invoice = await tx.invoice.findUnique({
+          where: {
+            invoiceNumber: createInvoiceDetailDto.invoiceNumber
+          }
+        });
 
+        if (!invoice) {
+          throw new NotFoundException(`Fatura bulunamadı: ${createInvoiceDetailDto.invoiceNumber}`);
+        }
 
+        // 2. Fatura detayını oluştur
+        const invoiceDetail = await tx.invoiceDetail.create({
+          data: {
+            invoiceNumber: createInvoiceDetailDto.invoiceNumber,
+            product_code: createInvoiceDetailDto.product_code,
+            quantity: quantity,
+            quantityBalance: quantity, // Başlangıçta bakiye, miktarın tamamıdır
+            unitPrice: unitPrice,
+            totalAmount: lineTotalAmountWithoutVat, // KDV Hariç Satır Toplamı
+            description: createInvoiceDetailDto.description,
+            isVatExempt: createInvoiceDetailDto.isVatExempt,
+            vatExemptionReason: createInvoiceDetailDto.vatExemptionReason,
+            vatRate: createInvoiceDetailDto.vatRate ? new Decimal(createInvoiceDetailDto.vatRate) : null,
+            vatAmount: lineVatAmount, // Hesaplanan KDV Tutarı
+          }
+        });
 
-    const invoiceDetail = await this.prisma.invoiceDetail.create({
-      data: {
-        invoiceNumber: createInvoiceDetailDto.invoiceNumber,
-        product_code: createInvoiceDetailDto.product_code,  
-        quantity: createInvoiceDetailDto.quantity,
-        quantityBalance: createInvoiceDetailDto.quantity,
-        unitPrice: createInvoiceDetailDto.unitPrice,
-        totalAmount: this.calculateTotalAmount(createInvoiceDetailDto),
-        description: createInvoiceDetailDto.description,
-        isVatExempt: createInvoiceDetailDto.isVatExempt,
-        vatExemptionReason: createInvoiceDetailDto.vatExemptionReason,
-        vatRate: createInvoiceDetailDto.vatRate,
-        vatAmount: createInvoiceDetailDto.vatAmount,
-      }
-    });
+        // Fatura detayı oluşturma işlemi sonrasında bir kontrol (genellikle Prisma hata fırlatır)
+        if (!invoiceDetail) {
+          throw new InternalServerErrorException('Fatura detay kaydı oluşturulamadı.');
+        }
 
-  const product = await this.prisma.product.findUnique({
-      where: { stock_code: createInvoiceDetailDto.product_code },
-      select: { balance: true },
-    });
+        // 3. Faturanın genel toplamlarını güncelle
+        await tx.invoice.update({
+          where: {
+            invoiceNumber: createInvoiceDetailDto.invoiceNumber
+          },
+          data: {
+            totalVatAmount: {
+              increment: lineVatAmount // Hesaplanan KDV tutarını ekle
+            },
+            totalAmountWithoutVat: {
+              increment: lineTotalAmountWithoutVat // Hesaplanan KDV hariç satır toplamını ekle
+            }
+          }
+        });
 
-    if (product) {
-      const newBalance = product.balance.plus(createInvoiceDetailDto.quantity); // Prisma Decimal ise .plus kullanılır
-      await this.prisma.product.update({
-        where: { stock_code: createInvoiceDetailDto.product_code },
-        data: { balance: newBalance },
+        // 4. Ürün stok bakiyesini güncelle (eğer ürün varsa)
+        const product = await tx.product.findUnique({
+          where: { stock_code: createInvoiceDetailDto.product_code },
+          select: { balance: true }, // Sadece bakiye alanını çek
+        });
+
+        if (product && product.balance !== null && product.balance !== undefined) {
+          const currentBalance = new Decimal(product.balance);
+          const newBalance = currentBalance.plus(quantity); // Alış faturası olduğu için stok artar
+          await tx.product.update({
+            where: { stock_code: createInvoiceDetailDto.product_code },
+            data: { balance: newBalance },
+          });
+        } else {
+          // Ürün bulunamazsa veya bakiye null ise logla.
+          // İşlemin devam etmesi veya burada bir hata fırlatılması iş mantığınıza bağlıdır.
+          console.warn(`Ürün kodu ${createInvoiceDetailDto.product_code} için stok güncellenemedi: Ürün bulunamadı veya bakiye bilgisi eksik.`);
+        }
+
+        return invoiceDetail;
+      },
+      {
+        maxWait: 10000, // Opsiyonel: İşlem için maksimum bekleme süresi
+        timeout: 20000, // Opsiyonel: İşlem için maksimum çalışma süresi
       });
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error; // Bilinen istemci taraflı hataları doğrudan fırlat
+      }
+      // Beklenmedik diğer hatalar için loglama ve genel bir sunucu hatası fırlatma
+      console.error('Fatura detayı oluşturulurken beklenmedik bir hata oluştu:', error);
+      throw new InternalServerErrorException('Fatura detayı oluşturulurken sunucu taraflı bir hata oluştu.');
     }
-
-    return invoiceDetail;
   }
 
-  findAll() {
-    return `This action returns all invoiceDetail`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} invoiceDetail`;
-  }
-
-  update(id: number, updateInvoiceDetailDto: UpdateInvoiceDetailDto) {
-    return `This action updates a #${id} invoiceDetail`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} invoiceDetail`;
-  }
-
-  private calculateTotalAmount(createInvoiceDetailDto: CreateInvoiceDetailDto): string {
-  const unitPrice = new Decimal(createInvoiceDetailDto.unitPrice);
-  const quantity = new Decimal(createInvoiceDetailDto.quantity);
-  const totalAmount = unitPrice.mul(quantity);
-  // İsterseniz iki ondalık basamağa yuvarlayabilirsiniz:
-  return totalAmount.toFixed(5);
-
-}
+  // Diğer metodlar (findAll, findOne, update, remove) buraya eklenebilir.
 }
