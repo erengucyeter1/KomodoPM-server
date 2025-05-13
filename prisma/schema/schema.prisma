@@ -40,6 +40,7 @@ model Invoice {
   expense_allocation_id            Int?               @map("YuklenimTuru")
   // Relations
   invoiceDetails                   InvoiceDetail[]
+ customerSupplier                 CustomerSupplier @relation(fields: [partnerTaxNumber], references: [taxNumber])
 
   @@map("Faturalar")
 }
@@ -82,6 +83,9 @@ model CustomerSupplier {
   isSupplier  Boolean  @default(false) @map("TedarikciMi")
   createdAt   DateTime @default(now()) @map("OlusturmaTarihi")
   updatedAt   DateTime @updatedAt @map("GuncellemeTarihi")
+
+  // Relations
+ invoices    Invoice[]
 
   @@map("MusteriTedarikciler")
 }
