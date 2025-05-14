@@ -35,9 +35,10 @@ async function main() {
       console.log(`Deleted ${deletedProjectExpenses} records from ProjectExpenses table.`);
       
       console.log('All ProjectExpenses records have been deleted successfully.');
-    }
-    
-    else {
+    }else if (queryName === 'logAllPermissions') {
+      const permissions = await prisma.permissions.findMany();
+      console.log(permissions);
+    }else {
       console.error(`Unknown query: ${queryName}`);
       process.exit(1);
     }
