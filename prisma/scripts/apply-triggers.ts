@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    // 1. Trigger fonksiyonunu oluştur
+    /*// 1. Trigger fonksiyonunu oluştur
     console.log('Creating function...');
     await prisma.$executeRawUnsafe(`
       CREATE OR REPLACE FUNCTION update_user_permissions_from_roles()
@@ -35,14 +35,14 @@ async function main() {
           RETURN NEW;
       END;
       $$ LANGUAGE plpgsql;
-    `);
+    `);*/
     
     // 2. Mevcut trigger'ı varsa kaldır
     console.log('Dropping existing trigger if any...');
     await prisma.$executeRawUnsafe(`
       DROP TRIGGER IF EXISTS update_user_permissions_trigger ON "user";
     `);
-    
+    /*
     // 3. Yeni trigger'ı oluştur
     console.log('Creating new trigger...');
     await prisma.$executeRawUnsafe(`
@@ -51,6 +51,7 @@ async function main() {
       FOR EACH ROW
       EXECUTE FUNCTION update_user_permissions_from_roles();
     `);
+    */
     
     console.log('Database triggers applied successfully');
   } catch (error) {
