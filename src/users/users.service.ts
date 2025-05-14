@@ -78,26 +78,43 @@ export class UsersService {
 
     async updateUserRoles(updateUserRolesDto: UpdateUserRolesDto): Promise<user> {
         const { username, roles } = updateUserRolesDto;
-        
+    
         return await this.prisma.user.update({
             where: { username },
             data: {
-                roles: roles
+                roles: {
+                    set: roles.map(id => ({ id })), // rol ID'leriyle ilişkilendir
+                },
+            },
+            include: {
+                roles: true, // Güncellenmiş rolleri dahil et (isteğe bağlı)
             },
         }).catch((error) => {
             console.error("Error updating user roles:", error);
             throw new Error("User roles update failed");
         });
     }
+    
 
-    async getUserRoles(id: number): Promise<{ roles: number[] } | null> {
-        return this.prisma.user.findUnique({
-            where: { id },
-            select: {
-                roles: true,
+    async getUserRoleIDs(id: number): Promise<{ roles: number[] } | null> {
+        const user = await this.prisma.user.findUnique({
+          where: { id },
+          select: {
+            roles: {
+              select: {
+                id: true,
+              },
             },
+          },
         });
-    }
+      
+        if (!user) return null;
+      
+        return {
+          roles: user.roles.map(role => Number(role.id)),
+        };
+      }
+      
 
     
 }

@@ -19,7 +19,7 @@ export class AuthService {
 
     async login(username: string, password: string): Promise<AuthEntity> {
 
-        const user = await this.prisma.user.findUnique({ where: { username: username } });
+        const user = await this.prisma.user.findUnique({ where: { username: username }, include: { roles: { include: { permissions: true } } } });
 
         if (!user) {
             throw new NotFoundException('Username or password is incorrect');
@@ -31,27 +31,16 @@ export class AuthService {
             throw new UnauthorizedException('Username or password is incorrect');
         }
 
-        const userPermissionIds = user.permissions || [];
 
 
-        const permissionNames = await this.prisma.permissions.findMany({
-            where: {
-                id: {
-                    in: userPermissionIds
-                }
-            },
-            select: {
-                name: true
-            }
-        });
+        const permissionNames = user.roles.flatMap(role => role.permissions.map(permission => permission.name));
 
-        const permissionNamesList = permissionNames.map(p => p.name);
 
 
 
 
         return {
-            accessToken: this.jwtService.sign({ user: new UserEntity(user, permissionNamesList) }),
+            accessToken: this.jwtService.sign({ user: new UserEntity(user, permissionNames) }),
         }
     }
 

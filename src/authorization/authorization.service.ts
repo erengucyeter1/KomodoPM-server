@@ -19,7 +19,7 @@ export class AuthorizationService {
       return ({ status: 400, message: "Permission already exists" });
     }
 
-    await this.prisma.permissions.create({ data });
+    await this.prisma.permission.create({ data });
 
 
 
@@ -27,7 +27,7 @@ export class AuthorizationService {
   }
 
   async findAllPermissions() {
-    return await this.prisma.permissions.findMany({
+    return await this.prisma.permission.findMany({
       select: {
         id: true,
         name: true,
@@ -37,7 +37,7 @@ export class AuthorizationService {
   }
 
   async findOnePermission(name: string) {
-    return await this.prisma.permissions.findUnique({
+    return await this.prisma.permission.findUnique({
       where: {
         name: name,
       },
@@ -46,7 +46,7 @@ export class AuthorizationService {
 
 
   async removePermission(id: number) {
-    const permission = await this.prisma.permissions.findUnique({
+    const permission = await this.prisma.permission.findUnique({
       where: {
         id: id,
       },
@@ -54,7 +54,7 @@ export class AuthorizationService {
     if (!permission) {
       return ({ status: 400, message: "Permission not found" });
     }
-    await this.prisma.permissions.delete({
+    await this.prisma.permission.delete({
       where: {
         id: id,
       },
@@ -64,7 +64,7 @@ export class AuthorizationService {
 
   async updatePermission(id: number, updatePermissionDto: UpdatePermissionDto) {
 
-    const permission = await this.prisma.permissions.findUnique({
+    const permission = await this.prisma.permission.findUnique({
       where: {
         id: id,
       },
@@ -74,7 +74,7 @@ export class AuthorizationService {
       return ({ status: 400, message: "Permission not found" });
     }
 
-    await this.prisma.permissions.update({
+    await this.prisma.permission.update({
       where: {
         id: id,
       },

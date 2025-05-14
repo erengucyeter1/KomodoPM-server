@@ -105,7 +105,7 @@ export class UserController {
   @ApiBearerAuth()
   @ApiOkResponse({ type: Object, isArray: true })
   async getUserRoles(@Param('id', ParseIntPipe) id: number) {
-    const roles = await this.usersService.getUserRoles(id);
+    const roles = await this.usersService.getUserRoleIDs(id);
     return roles;
   }
 
