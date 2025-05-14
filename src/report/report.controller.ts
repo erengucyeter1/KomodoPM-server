@@ -1,6 +1,10 @@
-import { Controller, Get, Param, Res, ParseIntPipe, HttpStatus, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Res, ParseIntPipe, HttpStatus, StreamableFile , Query} from '@nestjs/common';
 import { ReportService } from './report.service';
 import type { Response } from 'express'; // Express'ten Response tipini import et
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
+import { GetUser } from 'src/common/decorators/users/user.decorator';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 @Controller('reports')
 export class ReportController {
@@ -43,12 +47,15 @@ export class ReportController {
   }*/
 
   @Get('project/:projectId/kdv-iade')
+  @UseGuards(JwtAuthGuard)
   async getProjectKdvReturnReport(
     @Param('projectId') projectIdString: string,
+    @GetUser() user: UserEntity,
     @Res({ passthrough: true }) res: Response, // passthrough: true ekle
   ): Promise<StreamableFile> { // Dönüş tipini Promise<StreamableFile> yap
     try {
-      const pdfBuffer = await this.reportService.generateReportAsBuffer(projectIdString);
+
+      const pdfBuffer = await this.reportService.generateReportAsBuffer(projectIdString, user.id);
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="kdv_iade_raporu_proje_${projectIdString}.pdf"`);

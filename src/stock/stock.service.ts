@@ -28,6 +28,7 @@ export class StockService {
         stock_code: createStockDto.stockCode,
         measurement_unit: createStockDto.mesurementUnit,
         description: createStockDto.description,
+        isService: createStockDto.isService,
       },
     });
   }
@@ -40,8 +41,9 @@ export class StockService {
     sortOrder?: 'ASC' | 'DESC';
     filter?: string;
     isServiceOnly?: boolean;
+    balanceGreaterThan?: number;
   }) {
-    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter, isServiceOnly } = options;
+    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter, isServiceOnly, balanceGreaterThan } = options;
     
     // Build where condition for filtering
     let where: Prisma.ProductWhereInput = {};
@@ -50,13 +52,21 @@ export class StockService {
     if (isServiceOnly) {
       conditions.push({ isService: true });
     }
-    
+
+    // Apply balanceGreaterThan filter if it's a valid number
+    if (typeof balanceGreaterThan === 'number' && !isNaN(balanceGreaterThan)) {
+      conditions.push({ balance: { gte: balanceGreaterThan } });
+    }
+
+    console.log(balanceGreaterThan);
+
+
     if (filter) {
       // Use only fields that are string-searchable and apply case-insensitive search
       conditions.push({
         OR: [
           { stock_code: { contains: filter, mode: 'insensitive' } },
-          { description: { contains: filter, mode: 'insensitive' } }
+          { description: { contains: filter, mode: 'insensitive' } },
         ]
       });
     }

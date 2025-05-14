@@ -3,7 +3,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import puppeteer from 'puppeteer';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale'; // Türkçe locale'i bu şekilde import edin
+import { is, ca, tr } from 'date-fns/locale'; // Türkçe locale'i bu şekilde import edin
+import * as fs from 'fs';
+import * as path from 'path';
+
 
 export interface KdvDeductionLogEntry {
   projectId: number;
@@ -29,7 +32,7 @@ export interface KdvDeductionLogEntry {
   quantityDeducted: Decimal; // Alınan Mal ve/veya Hizmetin Miktarı (kullanılan)
   deductedValueKdvExclusive: Decimal; // Kullanılan miktarın KDV hariç değeri
   deductedVatAmount: Decimal; // Bünyeye Giren Mal ve/veya Hizmetin KDV'si (kullanılan miktarın KDV'si)
-  newBalanceOnInvoiceDetail: Decimal;
+ // newBalanceOnInvoiceDetail: Decimal;
 
   deductionTimestamp: Date;
 
@@ -38,14 +41,17 @@ export interface KdvDeductionLogEntry {
   yuklenimTuruId?: number | null; // Yüklenim Türü (ID, açıklaması ayrıca çekilecek)
   indirimKDVDönemi?: string | null; // Belgenin İndirime Konu Edildiği KDV Dönemi
   yuklenimKDVDönemi?: string | null; // Belgenin Yüklenildiği KDV Dönemi
+
+  saticiAdiUnvani?: string | null;
 }
 
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
 
-  public async getKdvDeductionLogForProject(projectId: number): Promise<KdvDeductionLogEntry[]> {
+  public async getKdvDeductionLogForProject(projectId: number, isPreview: boolean = true): Promise<KdvDeductionLogEntry[]> {
     const deductionLog: KdvDeductionLogEntry[] = [];
+    
 
     const aggregatedExpenses = await this.prisma.project_expenses.groupBy({
       by: ['product_code'],
@@ -54,7 +60,6 @@ export class ReportService {
     });
 
     if (!aggregatedExpenses || aggregatedExpenses.length === 0) {
-      console.log(`Proje ID ${projectId} için gider bulunamadı.`);
       return [];
     }
 
@@ -75,6 +80,7 @@ export class ReportService {
           console.warn(`Ürün kodu ${productCode} olan ürün bulunamadı. Bu ürün için düşüm işlemi atlanıyor.`);
           continue;
         }
+        
 
         const availableInvoiceDetails = await tx.invoiceDetail.findMany({
           where: {
@@ -82,13 +88,18 @@ export class ReportService {
             quantityBalance: { gt: 0 },
           },
           include: {
-            invoice: true,
+            invoice: {
+              include: {
+                customerSupplier: true,
+              },
+            },
           },
           orderBy: [
             { invoice: { invoiceDate: 'asc' } },
             { createdAt: 'asc' },
           ],
         });
+        
 
         for (const detail of availableInvoiceDetails) {
           if (quantityNeededForProduct.lessThanOrEqualTo(0)) {
@@ -99,12 +110,14 @@ export class ReportService {
           const quantityToDeductThisDetail = Decimal.min(quantityNeededForProduct, currentDetailBalance);
 
           if (quantityToDeductThisDetail.greaterThan(0)) {
-            const newDetailBalance = currentDetailBalance.minus(quantityToDeductThisDetail);
 
+            if(!isPreview){
+            const newDetailBalance = currentDetailBalance.minus(quantityToDeductThisDetail);
             await tx.invoiceDetail.update({
               where: { id: detail.id },
               data: { quantityBalance: newDetailBalance },
             });
+            };
 
             const vatRateFromDetail = detail.vatRate ? new Decimal(detail.vatRate) : new Decimal(0);
             const deductedValue = quantityToDeductThisDetail.mul(detail.unitPrice);
@@ -112,6 +125,8 @@ export class ReportService {
 
             const invoiceTotalAmountWithoutVat = new Decimal(detail.invoice.totalAmountWithoutVat || 0);
             const invoiceTotalVatAmount = new Decimal(detail.invoice.totalVatAmount || 0);
+
+            
 
             deductionLog.push({
               projectId,
@@ -133,13 +148,16 @@ export class ReportService {
               quantityDeducted: quantityToDeductThisDetail,
               deductedValueKdvExclusive: deductedValue,
               deductedVatAmount: vatAmountCalculated,
-              newBalanceOnInvoiceDetail: newDetailBalance,
+             // newBalanceOnInvoiceDetail: newDetailBalance,
               deductionTimestamp: new Date(),
               ggbTescilNo: detail.invoice.customsDeclarationNumber,
               iadeHakkiDoguranIslemTuru: detail.invoice.return_eligible_transaction_type,
               yuklenimTuruId: detail.invoice.expense_allocation_id,
               indirimKDVDönemi: detail.invoice.deduction_kdv_period,
               yuklenimKDVDönemi: detail.invoice.upload_kdv_period,
+
+              saticiAdiUnvani: detail.invoice.customerSupplier.title,
+              
             });
 
             quantityNeededForProduct = quantityNeededForProduct.minus(quantityToDeductThisDetail);
@@ -159,13 +177,49 @@ export class ReportService {
     return deductionLog;
   }
 
-  async generateReportAsBuffer(projectIdString: string): Promise<Buffer> {
+  async generateReportAsBuffer(projectIdString: string, creatorId:string): Promise<Buffer> {
     const projectId = parseInt(projectIdString, 10);
     if (isNaN(projectId)) {
       throw new BadRequestException('Geçersiz Proje ID formatı.');
     }
 
-    const kdvDeductionLogs = await this.getKdvDeductionLogForProject(projectId);
+    const projectStatusInfo = await this.prisma.treyler_project.findUnique({
+      where: { id: projectId },
+      select: {
+        status: true,
+      },
+    });
+
+    const isProjectComplated = (projectStatusInfo?.status === "completed");
+
+
+
+    const isPDFAlreadyExists = await this.prisma.expenseReport.findFirst({
+      where: {
+        project_id: projectId,
+      },
+    });
+
+
+    if(isPDFAlreadyExists){
+      // read file
+      const filePath = path.join(__dirname,  '..','..', '..', 'storage', 'expenseReports', isPDFAlreadyExists.file_path);
+      if(fs.existsSync(filePath)){
+        const pdfBuffer = fs.readFileSync(filePath);
+        return pdfBuffer;
+      }
+      else{
+        throw new NotFoundException('Rapor bulunamadı.');
+      }
+    }
+
+
+
+
+
+    
+
+    const kdvDeductionLogs = await this.getKdvDeductionLogForProject(projectId,!isProjectComplated);  // ikinci parametre false ise raporlanan değerler veri tabanından düşülür.
 
     if (kdvDeductionLogs.length === 0) {
       const htmlContent = `<html><body><h1>KDV İade Raporu (Proje: ${projectId})</h1><p>Bu proje için KDV iadesine tabi gider bulunamadı veya ilgili fatura detaylarında yeterli bakiye yoktu.</p></body></html>`;
@@ -174,7 +228,12 @@ export class ReportService {
       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
       const pdfBuffer = await page.pdf({ format: 'A4' });
       await browser.close();
-      return Buffer.from(pdfBuffer);
+
+      const result = Buffer.from(pdfBuffer);
+
+      
+
+      return result;
     }
 
     const reportData = await Promise.all(kdvDeductionLogs.map(async (log, index) => {
@@ -198,7 +257,7 @@ export class ReportService {
         siraNo: index + 1,
         alisFaturaTarihi: format(log.invoiceDate, 'dd.MM.yyyy'),
         alisFaturaSiraNo: log.invoiceNumber,
-        saticiAdiUnvani: log.invoicePartnerTaxNumber,
+        saticiAdiUnvani: log.saticiAdiUnvani,
         saticiVergiNoTCNo: log.invoicePartnerTaxNumber,
         malHizmetCinsi: log.productName,
         malHizmetMiktari: malHizmetMiktariStr,
@@ -230,6 +289,25 @@ export class ReportService {
         landscape: true,
         margin: { top: '20px', right: '15px', bottom: '20px', left: '15px' },
       });
+
+      
+      if(isProjectComplated){
+
+        //save to file
+
+        const filePath = this.savePDF(pdfUint8Array,projectId);
+
+
+        //save to db
+        await this.prisma.expenseReport.create({
+          data: {
+            creator_id: parseInt(creatorId, 10),
+            project_id: projectId,
+            file_path: filePath,
+          },
+        });
+      }
+
       return pdfUint8Array;
     } catch (error) {
       console.error('Rapor PDF oluşturulurken hata (servis):', error);
@@ -330,5 +408,27 @@ export class ReportService {
       </body>
       </html>
     `;
+  }
+
+  private savePDF(buffer: Buffer, projectId: number): string {
+    const dirPath = path.join(__dirname,'..','..', '..', 'storage', 'expenseReports');
+    const fileName = `kdv-raporu-${projectId}.pdf`;
+    const fullPath = path.join(dirPath, fileName);
+  
+    // Klasör yoksa oluştur
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  
+    // PDF dosyasını kaydet
+    try{
+      fs.writeFileSync(fullPath, buffer);
+
+    }catch (error){
+      console.error(error.message);
+    }
+  
+    // Veritabanına kaydetmek için göreli path döndür
+    return path.relative(path.join(__dirname, '..'), fullPath).replace(/\\/g, '/');
   }
 }

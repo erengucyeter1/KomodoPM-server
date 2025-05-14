@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, DefaultValuePipe, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, DefaultValuePipe, ParseIntPipe, Query, ParseBoolPipe } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
@@ -35,14 +35,18 @@ export class StockController {
     @Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit: number = 25,
     @Query('sortBy') sortBy: string = 'stock_code',
     @Query('sortOrder') sortOrder: 'ASC' | 'DESC' = 'ASC',
-    @Query('filter') filter: string,
+    @Query('filter') filter?: string,
+    @Query('isServiceOnly', new DefaultValuePipe(false), ParseBoolPipe) isServiceOnly?: boolean,
+    @Query('balanceGreaterThan', new DefaultValuePipe(undefined), ParseIntPipe) balanceGreaterThan?: number,
   ) {
     return this.stockService.findAll({
       page,
       limit,
       sortBy,
       sortOrder,
-      filter
+      filter,
+      isServiceOnly,
+      balanceGreaterThan,
     });
   }
 
