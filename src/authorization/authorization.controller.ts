@@ -63,6 +63,7 @@ export class AuthorizationController {
   @Permissions(['add:role'])
   @ApiBearerAuth()
   async createRole(@Body() createRoleDto: CreateRoleDto) {
+    console.log("CREATE ROLE DTO", createRoleDto);
     return await this.authorizationService.createRole(createRoleDto);
   }
 

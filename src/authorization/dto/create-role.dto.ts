@@ -12,5 +12,5 @@ export class CreateRoleDto {
     description: string;
 
     @ApiProperty()
-    permissionIDs: number[];
+    permissions: number[];
 }

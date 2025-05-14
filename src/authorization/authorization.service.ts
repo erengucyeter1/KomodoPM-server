@@ -114,36 +114,68 @@ export class AuthorizationService {
 
 
   async createRole(data: CreateRoleDto) {
-
-    const name = data.name;
-    const role = this.findOnePermission(name);
-
-    if (!role) {
-      return ({ status: 400, message: "Role already exists" });
+    const { name, description, permissions} = data;
+  
+    console.log("PERMİSSİON IDS", permissions);
+    // 1. Rol zaten var mı kontrolü
+    const existingRole = await this.prisma.role.findUnique({
+      where: { name },
+    });
+  
+    if (existingRole) {
+      return { status: 400, message: "Role already exists" };
     }
-
-    await this.prisma.role.create({ data });
-
-    return ({ status: 200, message: "Role created successfully" });
+  
+    // 2. Permission ID'lerine göre connect nesneleri oluştur
+    const permissionsToConnect = permissions.map(id => ({ id }));
+  
+    // 3. Rol oluştur ve permission'ları bağla
+    await this.prisma.role.create({
+      data: {
+        name,
+        description,
+        permissions: {
+          connect: permissionsToConnect,
+        },
+      },
+    });
+  
+    return { status: 200, message: "Role created successfully" };
   }
+  
 
 
   async updateRole(id: number, data: CreateRoleDto) {
+
+    const { name, description, permissions } = data;
+
+    const permissionsToConnect = permissions.map(id => ({ id }));
+
+
     const role = await this.prisma.role.findUnique({
       where: {
         id: id,
       },
+      
     });
 
     if (!role) {
       return ({ status: 400, message: "Role not found" });
     }
 
+
+
     await this.prisma.role.update({
       where: {
         id: id,
       },
-      data: data,
+      data: {
+        name,
+        description,
+        permissions: {
+          connect: permissionsToConnect,
+        },
+      },
     });
 
     return ({ status: 200, message: "Role updated successfully" });
