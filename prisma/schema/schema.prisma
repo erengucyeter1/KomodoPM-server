@@ -171,9 +171,9 @@ model user {
   name        String   @db.VarChar
   surname     String   @db.VarChar
   email       String   @db.VarChar
-  permissions Int[]
-  roles       Int[]
 
+  roles role[] // Many-to-many relationship with Role
+ 
   authorization_rank Int
   project_expenses   project_expenses[]
   treyler_project    treyler_project[]
@@ -182,19 +182,25 @@ model user {
   receivedMessages message[] @relation("receivedMessages")
 }
 
-model permissions {
+model permission {
   id          Int    @id @default(autoincrement())
   name        String @unique @db.VarChar
   description String @db.VarChar
+
+  roles       role[] // Many-to-many relationship with Role
 }
+
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model role {
-  id          BigInt  @id @default(autoincrement())
-  name        String? @unique @db.VarChar
-  description String? @db.VarChar
-  permissions Int[]
+  id          BigInt       @id @default(autoincrement())
+  name        String?      @unique @db.VarChar
+  description String?      @db.VarChar
+
+  users       user[] // Many-to-many relationship with User
+  permissions permission[] // Many-to-many relationship with Permission
 }
+
 
 model message {
   id           Int         @id @default(autoincrement())
