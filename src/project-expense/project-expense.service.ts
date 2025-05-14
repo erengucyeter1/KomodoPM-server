@@ -63,4 +63,14 @@ export class ProjectExpenseService {
 
  
 }
+
+  async findOne(id: string) {
+    return await this.prisma.project_expenses.findUnique({
+      where: { id: Number(id) },
+      include: {
+        product: true,
+        user: true,
+      },
+    });
+  }
 }

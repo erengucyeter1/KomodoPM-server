@@ -12,6 +12,11 @@ export class ProjectExpenseController {
     return this.projectExpenseService.create(createProjectExpenseDto);
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.projectExpenseService.findOne(id);
+  }
+
   @Get('project/:projectId')
   async findManyByProjectId(@Param('projectId') projectId: string) {
     return this.projectExpenseService.findManyByProjectId(Number(projectId));
