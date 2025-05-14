@@ -31,6 +31,7 @@ export class PermissionGuard implements CanActivate {
     const token = request.headers['authorization']?.split(' ')[1];
 
     if (!token) {
+      console.log('JWT token not found');
       throw new ForbiddenException('JWT token not found');
     }
 
@@ -52,9 +53,11 @@ export class PermissionGuard implements CanActivate {
     // Kullanıcının izinlerini al
     const userPermissions = user.permissions || [];
 
+    console.log('User Permissions:', userPermissions);
     
     // Admin kontrolü
     if (userPermissions.includes('admin')) {
+      console.log('User is admin');
       return true;
     }
 

@@ -26,7 +26,7 @@ export class AuthController {
 
     @Post('register')
     @UseGuards(JwtAuthGuard)
-    @Permissions(['add:user'])
+    @Permissions(['create:user'])
     @ApiBearerAuth()
     @ApiOkResponse({ type: AuthEntity })
     register(@Body() { username, password, name, surname, email, authorization_rank }: RegisterDto) {

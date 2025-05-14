@@ -30,7 +30,7 @@ export class UserController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Permissions(['add:user'])
+  @Permissions(['create:user'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto) {
