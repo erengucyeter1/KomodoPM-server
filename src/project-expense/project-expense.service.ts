@@ -95,10 +95,19 @@ export class ProjectExpenseService {
       return;
     }
 
+    if(!updateProjectExpenseDto.product_count){
+      throw new BadRequestException('Yeni miktar girilmedi.');
+    }
+
     const product_balance = new Decimal(product.balance);
-    const new_quantity = new Decimal(updateProjectExpenseDto.product_count || 0);
+    const new_quantity = new Decimal(updateProjectExpenseDto.product_count);
     const old_quantity = new Decimal(project_expense.quantity);
     const difference = new_quantity.minus(old_quantity);
+
+    console.log("difference: ", difference);
+    console.log("product_balance: ", product_balance);
+    console.log("new_quantity: ", new_quantity);
+    console.log("old_quantity: ", old_quantity);
 
     if(difference.greaterThan(product_balance)){
       console.log("yetersiz bakiye");
