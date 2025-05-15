@@ -158,6 +158,7 @@ model treyler_type {
   created_at         DateTime          @default(now()) @db.Timestamptz(6)
   name               String            @db.VarChar
   description        String?           @db.Text
+  class              trailer_class
   image_data         String?           @db.Text // For storing Base64 encoded image data
   image_content_type String?           @db.VarChar(50) // For storing MIME type (e.g., 'image/jpeg')
   treyler_project    treyler_project[]
@@ -255,3 +256,12 @@ enum KDVRefundStatus {
   Onaylandi
   Reddedildi
 }
+
+
+enum trailer_class {
+  LOWBED
+  LOWLOADER
+  FLATBED
+  SPECIAL
+}
+
