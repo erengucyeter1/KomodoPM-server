@@ -7,22 +7,19 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  UseGuards,
+  
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 import { UserEntity } from './entities/user.entity';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 import {Permissions} from '../common/decorators/permissions/permissions.decorator';
 import { GetUser } from 'src/common/decorators/users/user.decorator';
-import { Prisma } from '@prisma/client';
 
 
 @Controller('users')

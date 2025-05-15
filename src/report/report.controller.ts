@@ -1,8 +1,7 @@
 import { Controller, Get, Param, Res, ParseIntPipe, HttpStatus, StreamableFile , Query} from '@nestjs/common';
 import { ReportService } from './report.service';
 import type { Response } from 'express'; // Express'ten Response tipini import et
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { UseGuards } from '@nestjs/common';
+
 import { GetUser } from 'src/common/decorators/users/user.decorator';
 import { UserEntity } from 'src/users/entities/user.entity';
 

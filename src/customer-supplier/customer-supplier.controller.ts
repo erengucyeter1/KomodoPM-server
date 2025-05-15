@@ -8,7 +8,7 @@ import {
   Delete, 
   Query, 
   ParseIntPipe, 
-  UseGuards,
+  
   NotFoundException 
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';

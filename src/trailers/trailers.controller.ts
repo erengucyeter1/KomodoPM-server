@@ -3,7 +3,6 @@ import { TrailersService } from './trailers.service';
 import { CreateTreylerDto } from './dto/create-trailers.dto';
 import { UpdateTreylerDto } from './dto/update-trailers.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Permissions } from 'src/common/decorators/permissions/permissions.decorator';
 @Controller('trailers')
 export class TrailersContoller {
