@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { TrailersService } from './trailers.service';
 import { CreateTreylerDto } from './dto/create-trailers.dto';
 import { UpdateTreylerDto } from './dto/update-trailers.dto';
@@ -13,8 +13,8 @@ export class TrailersContoller {
   }
 
   @Get()
-  findAll() {
-    return this.treylersService.findAll();
+  findAll(@Query('classFilter') classFilter: string) {
+    return this.treylersService.findAll(classFilter);
   }
 
   @Get(':id')

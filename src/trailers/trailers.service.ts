@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTreylerDto } from './dto/create-trailers.dto';
 import { UpdateTreylerDto } from './dto/update-trailers.dto';
+import { trailer_class } from '@prisma/client';
 
 @Injectable()
 export class TrailersService {
@@ -15,12 +16,21 @@ export class TrailersService {
         name,
         description,
         image_data: imageData,
+        class: createTreylerDto.class as trailer_class,
         image_content_type: contentType || 'image/jpeg', // Default if not provided
       },
     });
   }
 
-  async findAll() {
+  async findAll(classFilter: string | undefined) {
+    if (classFilter) {
+      return this.prisma.treyler_type.findMany({
+        where: {
+          class: classFilter as trailer_class,
+        },
+      });
+    }
+    
     return this.prisma.treyler_type.findMany();
   }
 
