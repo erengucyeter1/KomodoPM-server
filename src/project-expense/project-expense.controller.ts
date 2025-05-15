@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { ProjectExpenseService } from './project-expense.service';
 import { CreateProjectExpenseDto } from './dto/create-project-expense.dto';
 import { UpdateProjectExpenseDto } from './dto/update-project-expense.dto';
@@ -20,6 +20,11 @@ export class ProjectExpenseController {
   @Get('project/:projectId')
   async findManyByProjectId(@Param('projectId') projectId: string) {
     return this.projectExpenseService.findManyByProjectId(Number(projectId));
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updateProjectExpenseDto: UpdateProjectExpenseDto) {
+    return this.projectExpenseService.update(id, updateProjectExpenseDto);
   }
 }
 

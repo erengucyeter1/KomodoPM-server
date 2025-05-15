@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateProjectExpenseDto } from './dto/create-project-expense.dto';
 import { UpdateProjectExpenseDto } from './dto/update-project-expense.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProjectExpenseService {
@@ -70,6 +71,51 @@ export class ProjectExpenseService {
       include: {
         product: true,
         user: true,
+      },
+    });
+  }
+
+  async update(id: string, updateProjectExpenseDto: UpdateProjectExpenseDto) {
+
+    const project_expense = await this.prisma.project_expenses.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!project_expense) {
+      throw new BadRequestException('Bu numara ile gider bulunamadı.');
+    }
+    const product_code = project_expense?.product_code;
+    const product = await this.prisma.product.findUnique({
+      where: { stock_code: product_code },
+      select: { balance: true },
+    });
+
+    if (!product) {
+      console.log("product not found");
+      return;
+    }
+
+    const product_balance = new Decimal(product.balance);
+    const new_quantity = new Decimal(updateProjectExpenseDto.product_count || 0);
+    const old_quantity = new Decimal(project_expense.quantity);
+    const difference = new_quantity.minus(old_quantity);
+
+    if(difference.greaterThan(product_balance)){
+      console.log("yetersiz bakiye");
+      throw new BadRequestException('Yetersiz bakiye.');
+    }
+
+    const new_balance = product_balance.minus(difference);
+
+    await this.prisma.product.update({
+      where: { stock_code: product_code },
+      data: { balance: new_balance },
+    });
+
+    return await this.prisma.project_expenses.update({
+      where: { id: Number(id) },
+      data: {
+        quantity: new_quantity,
       },
     });
   }
