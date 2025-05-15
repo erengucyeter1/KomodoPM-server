@@ -119,7 +119,7 @@ model project_expenses {
   user                      user                     @relation(fields: [creator_id], references: [id], onDelete: NoAction)
   product                   Product                  @relation(fields: [product_code], references: [stock_code], onDelete: NoAction)
   treyler_project           treyler_project          @relation(fields: [project_id], references: [id], onDelete: NoAction)
- 
+  expense_update_attempts expense_update_attempt[]
 }
 
 
@@ -181,6 +181,9 @@ model user {
 
   sentMessages     message[] @relation("sentMessages")
   receivedMessages message[] @relation("receivedMessages")
+
+  expense_update_attempts_creator expense_update_attempt[] @relation("expense_creator")
+  expense_update_attempts_applicant expense_update_attempt[] @relation("applicant")
 }
 
 model permission {
@@ -220,6 +223,34 @@ model message {
 
   @@index([senderId])
   @@index([recipientId])
+}
+
+
+
+model expense_update_attempt {
+  id Int @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  applicant_id BigInt
+  expense_creator_id BigInt
+  project_expense_id BigInt
+  old_quantity Decimal @db.Decimal(10, 3)
+  new_quantity Decimal @db.Decimal(10, 3)
+  status expense_update_attempt_status @default(pending)
+
+  //relations
+  expense_creator user @relation(name: "expense_creator", fields: [expense_creator_id], references: [id], onDelete: NoAction)
+  applicant user @relation(name: "applicant", fields: [applicant_id], references: [id], onDelete: NoAction)
+  project_expense project_expenses @relation(fields: [project_expense_id], references: [id], onDelete: NoAction)
+
+  
+
+
+}
+
+enum expense_update_attempt_status {
+  pending
+  approved
+  rejected
 }
 
 enum measurement_units {
