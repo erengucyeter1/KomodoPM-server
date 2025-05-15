@@ -47,7 +47,7 @@ export class ReportController {
   }*/
 
   @Get('project/:projectId/kdv-iade')
-  @UseGuards(JwtAuthGuard)
+  
   async getProjectKdvReturnReport(
     @Param('projectId') projectIdString: string,
     @GetUser() user: UserEntity,

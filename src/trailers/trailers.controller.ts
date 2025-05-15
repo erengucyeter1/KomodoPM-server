@@ -10,7 +10,7 @@ export class TrailersContoller {
   constructor(private readonly treylersService: TrailersService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['create:trailer'])
   @ApiBearerAuth()
   create(@Body() createTreylerDto: CreateTreylerDto) {
@@ -18,7 +18,7 @@ export class TrailersContoller {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:trailers'])
   @ApiBearerAuth()
   findAll(@Query('classFilter') classFilter: string) {
@@ -26,7 +26,7 @@ export class TrailersContoller {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:trailer'])
   @ApiBearerAuth()
   findOne(@Param('id') id: string) {
@@ -34,7 +34,7 @@ export class TrailersContoller {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:trailer'])
   @ApiBearerAuth()
 
@@ -43,7 +43,7 @@ export class TrailersContoller {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:trailer'])
   @ApiBearerAuth()
   remove(@Param('id') id: string) {

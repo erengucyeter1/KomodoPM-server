@@ -8,6 +8,7 @@ import { RegisterDto } from './dto/register.dto';
 
 import {Permissions} from '../common/decorators/permissions/permissions.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Public } from 'src/common/decorators/auth/public.decorator';
 
 
 
@@ -17,6 +18,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('login')
+    @Public()
     @ApiOkResponse({ type: AuthEntity })
 
     login(@Body() { username, password }: LoginDto) {
@@ -25,7 +27,6 @@ export class AuthController {
 
 
     @Post('register')
-    @UseGuards(JwtAuthGuard)
     @Permissions(['create:user'])
     @ApiBearerAuth()
     @ApiOkResponse({ type: AuthEntity })

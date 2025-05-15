@@ -32,7 +32,7 @@ export class UserController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['create:user'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
@@ -42,7 +42,7 @@ export class UserController {
 
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
@@ -52,7 +52,7 @@ export class UserController {
   }
 
   @Get('chat')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:chat'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
@@ -67,7 +67,7 @@ export class UserController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
@@ -79,7 +79,7 @@ export class UserController {
 
   @Patch(':id')
   @Permissions(['update:user'])
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
@@ -90,7 +90,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:user'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
@@ -99,7 +99,7 @@ export class UserController {
   }
 
   @Patch('roles/update')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:user_roles'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
@@ -118,7 +118,7 @@ export class UserController {
 
 
   @Get(':id/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:user_roles'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: Object, isArray: true })

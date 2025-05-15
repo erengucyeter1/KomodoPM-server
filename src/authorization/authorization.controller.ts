@@ -13,7 +13,7 @@ export class AuthorizationController {
 
   
   @Post('/permissions')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['add:permission'])
   @ApiBearerAuth()
   async create(@Body() createPermissionDto: CreatePermissionDto) {
@@ -22,7 +22,7 @@ export class AuthorizationController {
 
  
   @Get("/permissions")
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:permissions'])
   @ApiBearerAuth()
   async findAll() {
@@ -30,7 +30,7 @@ export class AuthorizationController {
   }
 
   @Patch('/permissions/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:permissions'])
   @ApiBearerAuth()
   async update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto) {
@@ -39,7 +39,7 @@ export class AuthorizationController {
   }
 
   @Delete('/permissions/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:permission'])
   @ApiBearerAuth()
   async remove(@Param('id') id: string) {
@@ -51,7 +51,7 @@ export class AuthorizationController {
   // roles
 
   @Get('/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:roles'])
   @ApiBearerAuth()
   async findAllRoles() {
@@ -59,7 +59,7 @@ export class AuthorizationController {
   }
 
   @Post('/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['add:role'])
   @ApiBearerAuth()
   async createRole(@Body() createRoleDto: CreateRoleDto) {
@@ -68,14 +68,14 @@ export class AuthorizationController {
   }
 
   @Put('/roles/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:role'])
   @ApiBearerAuth()
   async updateRole(@Param('id') id: string, @Body() createRoleDto: CreateRoleDto) {
     return await this.authorizationService.updateRole(+id, createRoleDto);
   }
   @Delete('/roles/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:role'])
   @ApiBearerAuth()
   async deleteRole(@Param('id') id: string) {

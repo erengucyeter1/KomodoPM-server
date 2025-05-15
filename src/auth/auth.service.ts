@@ -16,7 +16,6 @@ export class AuthService {
     constructor(private prisma: PrismaService, private jwtService: JwtService, private usersService: UsersService) { }
 
 
-
     async login(username: string, password: string): Promise<AuthEntity> {
 
         const user = await this.prisma.user.findUnique({ where: { username: username }, include: { roles: { include: { permissions: true } } } });
