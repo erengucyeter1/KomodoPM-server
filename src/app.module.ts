@@ -18,11 +18,13 @@ import { InvoiceDetailModule } from './invoice-detail/invoice-detail.module';
 import { CustomerSupplierModule } from './customer-supplier/customer-supplier.module';
 import { ProjectExpenseModule } from './project-expense/project-expense.module';
 import { ReportModule } from './report/report.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
   imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TrailersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule, ProjectExpenseModule, ReportModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
-  providers: [AppService, PrismaService, UsersService, AuthorizationService],
+  providers: [AppService, PrismaService, UsersService, AuthorizationService, {provide: APP_GUARD, useClass: JwtAuthGuard}],
 })
 export class AppModule { }
 
