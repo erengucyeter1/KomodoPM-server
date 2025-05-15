@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePermissionRequestDto } from './dto/create-permission_request.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UpdatePermissionRequestDto } from './dto/update-permission_request.dto';
 
 
 @Injectable()
@@ -35,6 +36,14 @@ export class PermissionRequestsService {
         new_quantity: createPermissionRequestDto.new_quantity,
         old_quantity: createPermissionRequestDto.old_quantity,
       }
+    });
+  }
+
+
+  async update(id: number, updatePermissionRequestDto: UpdatePermissionRequestDto) {
+    return this.prisma.expense_update_attempt.update({
+      where: { id },
+      data: updatePermissionRequestDto
     });
   }
 
