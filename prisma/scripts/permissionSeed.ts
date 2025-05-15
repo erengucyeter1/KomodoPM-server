@@ -35,6 +35,7 @@ const permissions = [
 
 // Römorklar (Trailers)
 { name: 'see:trailers', description: 'Römorkları görür' },
+{ name: 'see:trailer', description: 'seçili bir römorkun detaylarını görür' },
 { name: 'create:trailer', description: 'yeni römork modeli ekler' },
 { name: 'update:trailer', description: 'bir römorkun özelliklerini günceller' },
 { name: 'delete:trailer', description: 'bir römorkun kaydını siler' },

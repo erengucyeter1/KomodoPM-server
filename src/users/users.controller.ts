@@ -21,6 +21,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 import {Permissions} from '../common/decorators/permissions/permissions.decorator';
+import { GetUser } from 'src/common/decorators/users/user.decorator';
+import { Prisma } from '@prisma/client';
+
 
 @Controller('users')
 @ApiTags('users')
@@ -46,6 +49,21 @@ export class UserController {
   async findAll() {
     const users = await this.usersService.findAll();
     return users.map((user) => new UserEntity(user));
+  }
+
+  @Get('chat')
+  @UseGuards(JwtAuthGuard)
+  @Permissions(['see:chat'])
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity, isArray: true })
+  async findAllChat(@GetUser() user: UserEntity) {
+
+    if(user?.permissions.includes('send:message') || user?.permissions.includes('admin')) {
+      return this.usersService.findAll();
+    }
+
+    return this.usersService.findChat(user);
+
   }
 
   @Get(':id')

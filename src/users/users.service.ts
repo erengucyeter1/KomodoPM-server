@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {UpdateUserRolesDto} from './dto/update-user-roles.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,28 @@ export class UsersService {
 
     async findAll(): Promise<user[]> {
         return this.prisma.user.findMany();
+    }
+
+    async findChat(user: UserEntity): Promise<user[]> {
+
+        console.log(user.username)
+        const senders: { senderId: number }[] = await this.prisma.$queryRaw`
+        SELECT DISTINCT "senderId"
+        FROM "message"
+        WHERE "recipientId" = ${user.id}::bigint
+        `
+
+
+        return await this.prisma.user.findMany({
+            where: {
+                id: {
+                    in: senders.map((s: any) => s.senderId),
+                },
+            },
+        });
+            
+
+        
     }
 
     async create(data: CreateUserDto): Promise<user> {
