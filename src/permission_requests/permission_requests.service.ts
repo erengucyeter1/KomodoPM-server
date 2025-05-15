@@ -23,12 +23,13 @@ export class PermissionRequestsService {
     if(OldAttempt){
       return {
         message: 'Bu gider için zaten bir izin talebi bekliyor.',
-        status: 406
+        success: false
+
       }
     }
 
 
-    return  this.prisma.expense_update_attempt.create({
+    const newAttempt = await this.prisma.expense_update_attempt.create({
       data: {
         applicant_id: createPermissionRequestDto.applicant_id,
         expense_creator_id: createPermissionRequestDto.expense_creator_id,
@@ -36,15 +37,30 @@ export class PermissionRequestsService {
         new_quantity: createPermissionRequestDto.new_quantity,
         old_quantity: createPermissionRequestDto.old_quantity,
       }
+
     });
+
+    return {
+      message: 'İzin talebi başarıyla oluşturuldu.',
+      success: true,
+      data: newAttempt
+    }
   }
 
 
   async update(id: number, updatePermissionRequestDto: UpdatePermissionRequestDto) {
-    return this.prisma.expense_update_attempt.update({
-      where: { id },
-      data: updatePermissionRequestDto
+    const response = await this.prisma.expense_update_attempt.update({
+      where: { id: id },
+      data: {
+        status: updatePermissionRequestDto.status
+      }
     });
+
+    return {
+      message: 'İzin talebi başarıyla güncellendi.',
+      success: true,
+      data: response
+    }
   }
 
   

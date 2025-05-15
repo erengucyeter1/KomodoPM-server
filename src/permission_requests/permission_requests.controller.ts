@@ -12,8 +12,9 @@ export class PermissionRequestsController {
     return await this.permissionRequestsService.create(createPermissionRequestDto);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() updatePermissionRequestDto: UpdatePermissionRequestDto) {
+  @Put()
+  async update(@Body() updatePermissionRequestDto: UpdatePermissionRequestDto) {
+    const id = updatePermissionRequestDto.id;
     return await this.permissionRequestsService.update(id, updatePermissionRequestDto);
   }
 

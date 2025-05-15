@@ -121,11 +121,17 @@ export class ProjectExpenseService {
       data: { balance: new_balance },
     });
 
-    return await this.prisma.project_expenses.update({
+    const response = await this.prisma.project_expenses.update({
       where: { id: Number(id) },
       data: {
         quantity: new_quantity,
       },
     });
+
+    return {
+      message: 'Gider başarıyla güncellendi.',
+      success: true,
+      data: response
+    }
   }
 }
