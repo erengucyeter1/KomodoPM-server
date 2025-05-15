@@ -20,9 +20,10 @@ import { ProjectExpenseModule } from './project-expense/project-expense.module';
 import { ReportModule } from './report/report.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { PermissionRequestsModule } from './permission_requests/permission_requests.module';
 
 @Module({
-  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TrailersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule, ProjectExpenseModule, ReportModule ], // AuthModule already exports JwtModule
+  imports: [AuthModule, UserModule, UserModule, AuthorizationModule, ChatModule, TrailersModule, ProjectsModule, StockModule, QrcodeModule, BillModule, InvoiceModule, InvoiceDetailModule, CustomerSupplierModule, ProjectExpenseModule, ReportModule, PermissionRequestsModule ], // AuthModule already exports JwtModule
   controllers: [AppController],
   providers: [AppService, PrismaService, UsersService, AuthorizationService, {provide: APP_GUARD, useClass: JwtAuthGuard}],
 })
