@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Decimal } from '@prisma/client/runtime/library';
 import puppeteer from 'puppeteer';
 import { format } from 'date-fns';
-import { is, ca, tr } from 'date-fns/locale'; // Türkçe locale'i bu şekilde import edin
+import {  tr } from 'date-fns/locale'; // Türkçe locale'i bu şekilde import edin
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -95,8 +95,8 @@ export class ReportService {
             },
           },
           orderBy: [
-            { invoice: { invoiceDate: 'asc' } },
-            { createdAt: 'asc' },
+            { invoice: { invoiceDate: 'desc' } },
+            { createdAt: 'desc' },
           ],
         });
         
