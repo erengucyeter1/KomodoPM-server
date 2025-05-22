@@ -57,7 +57,7 @@ async function main() {
 
     if (adminRole) {
       // Şifreyi hash'le
-      const hashedPassword = await bcrypt.hash('0000Eren!15975321', 10)
+      const hashedPassword = await bcrypt.hash('admin', 10)
       
       const adminUser = await prisma.user.create({
         data: {
