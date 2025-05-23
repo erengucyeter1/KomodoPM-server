@@ -47,7 +47,8 @@ Komodo Project Management System Backend API'si, moderne römork ve treyler üre
 - Proje bazlı iade hesaplamaları
 - Yasal uyumluluk kontrolü
 
-  ![image](https://github.com/user-attachments/assets/c3803da0-9c01-4ccd-b919-0004adb09df5)
+  <img width="1185" alt="örnek rapor" src="https://github.com/user-attachments/assets/b262d927-09d0-4205-9a23-7de7ac71d177" />
+
 
 
 ### 💬 İletişim ve Bildirimler
