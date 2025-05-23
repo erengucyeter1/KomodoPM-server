@@ -58,7 +58,7 @@ async function main() {
     console.log('User tablosuna admin kullanıcısı ekleniyor...')
 
     if (adminRole) {
-      const hashedPassword = await bcrypt.hash('0000Eren!15975321', 10)
+      const hashedPassword = await bcrypt.hash('admin', 10)
 
       try{
         adminUser = await prisma.user.create({
