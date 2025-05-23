@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { parseJwt } from 'src/common/utils/jwtHelper';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {
@@ -30,10 +31,11 @@ export class PermissionGuard implements CanActivate {
     const token = request.headers['authorization']?.split(' ')[1];
 
     if (!token) {
+      console.log('JWT token not found');
       throw new ForbiddenException('JWT token not found');
     }
 
-    const payload = this.parseJwt(token);
+    const payload = parseJwt(token);
 
 
 
@@ -51,9 +53,11 @@ export class PermissionGuard implements CanActivate {
     // Kullanıcının izinlerini al
     const userPermissions = user.permissions || [];
 
+    console.log('User Permissions:', userPermissions);
     
     // Admin kontrolü
     if (userPermissions.includes('admin')) {
+      console.log('User is admin');
       return true;
     }
 
@@ -89,26 +93,5 @@ export class PermissionGuard implements CanActivate {
 
  
 
-  private parseJwt(token) {
-      try {
-        // JWT'nin payload kısmını al
-        const base64Url = token.split('.')[1];
-        
-        // Base64 URL karakter düzeltmeleri
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        
-        // Base64'ü çözümle (UTF-8 desteği ile)
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        
-        return JSON.parse(jsonPayload);
-      } catch (error) {
-        console.error('JWT parsing error:', error);
-        return null;
-      }
-    }
+  
 }

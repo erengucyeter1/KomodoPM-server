@@ -6,6 +6,9 @@ export class CreateTreylerDto {
     name: string;
 
     @IsString()
+    class: string;
+
+    @IsString()
     description: string;
 
     @IsOptional()

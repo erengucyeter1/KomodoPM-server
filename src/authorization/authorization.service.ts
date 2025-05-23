@@ -19,7 +19,7 @@ export class AuthorizationService {
       return ({ status: 400, message: "Permission already exists" });
     }
 
-    await this.prisma.permissions.create({ data });
+    await this.prisma.permission.create({ data });
 
 
 
@@ -27,7 +27,7 @@ export class AuthorizationService {
   }
 
   async findAllPermissions() {
-    return await this.prisma.permissions.findMany({
+    return await this.prisma.permission.findMany({
       select: {
         id: true,
         name: true,
@@ -37,7 +37,7 @@ export class AuthorizationService {
   }
 
   async findOnePermission(name: string) {
-    return await this.prisma.permissions.findUnique({
+    return await this.prisma.permission.findUnique({
       where: {
         name: name,
       },
@@ -46,7 +46,7 @@ export class AuthorizationService {
 
 
   async removePermission(id: number) {
-    const permission = await this.prisma.permissions.findUnique({
+    const permission = await this.prisma.permission.findUnique({
       where: {
         id: id,
       },
@@ -54,7 +54,7 @@ export class AuthorizationService {
     if (!permission) {
       return ({ status: 400, message: "Permission not found" });
     }
-    await this.prisma.permissions.delete({
+    await this.prisma.permission.delete({
       where: {
         id: id,
       },
@@ -64,7 +64,7 @@ export class AuthorizationService {
 
   async updatePermission(id: number, updatePermissionDto: UpdatePermissionDto) {
 
-    const permission = await this.prisma.permissions.findUnique({
+    const permission = await this.prisma.permission.findUnique({
       where: {
         id: id,
       },
@@ -74,7 +74,7 @@ export class AuthorizationService {
       return ({ status: 400, message: "Permission not found" });
     }
 
-    await this.prisma.permissions.update({
+    await this.prisma.permission.update({
       where: {
         id: id,
       },
@@ -114,36 +114,68 @@ export class AuthorizationService {
 
 
   async createRole(data: CreateRoleDto) {
-
-    const name = data.name;
-    const role = this.findOnePermission(name);
-
-    if (!role) {
-      return ({ status: 400, message: "Role already exists" });
+    const { name, description, permissions} = data;
+  
+    console.log("PERMİSSİON IDS", permissions);
+    // 1. Rol zaten var mı kontrolü
+    const existingRole = await this.prisma.role.findUnique({
+      where: { name },
+    });
+  
+    if (existingRole) {
+      return { status: 400, message: "Role already exists" };
     }
-
-    await this.prisma.role.create({ data });
-
-    return ({ status: 200, message: "Role created successfully" });
+  
+    // 2. Permission ID'lerine göre connect nesneleri oluştur
+    const permissionsToConnect = permissions.map(id => ({ id }));
+  
+    // 3. Rol oluştur ve permission'ları bağla
+    await this.prisma.role.create({
+      data: {
+        name,
+        description,
+        permissions: {
+          connect: permissionsToConnect,
+        },
+      },
+    });
+  
+    return { status: 200, message: "Role created successfully" };
   }
+  
 
 
   async updateRole(id: number, data: CreateRoleDto) {
+
+    const { name, description, permissions } = data;
+
+    const permissionsToConnect = permissions.map(id => ({ id }));
+
+
     const role = await this.prisma.role.findUnique({
       where: {
         id: id,
       },
+      
     });
 
     if (!role) {
       return ({ status: 400, message: "Role not found" });
     }
 
+
+
     await this.prisma.role.update({
       where: {
         id: id,
       },
-      data: data,
+      data: {
+        name,
+        description,
+        permissions: {
+          connect: permissionsToConnect,
+        },
+      },
     });
 
     return ({ status: 200, message: "Role updated successfully" });

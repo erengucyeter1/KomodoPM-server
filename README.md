@@ -1,99 +1,345 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Komodo Project Management System - Server
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 🚀 Proje Hakkında
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Komodo Project Management System Backend API'si, moderne römork ve treyler üretimi yapan şirketler için tasarlanmış güçlü bir RESTful API'dir. Bu sistem, NestJS framework'ü kullanarak geliştirilmiş olup, üretim süreçlerinin takibi, proje yönetimi, fatura işlemleri, KDV iade raporu otomasyonu, stok yönetimi ve müşteri ilişkileri gibi kritik iş süreçlerini destekler.
 
-## Description
+## 🎯 Ana Özellikler
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 🔐 Kimlik Doğrulama ve Yetkilendirme
+- JWT tabanlı kimlik doğrulama sistemi
+- Rol bazlı erişim kontrolü (RBAC)
+- İzin bazlı yetkilendirme (Permission-based authorization)
+- Güvenli şifreleme (bcrypt)
+- Passport.js entegrasyonu
 
-## Project setup
+### 🏗️ Proje Yönetimi
+- Treyler üretim projelerinin oluşturulması ve takibi
+- Proje durumu yönetimi (Planned, In Progress, Completed, Canceled)
+- Bütçe ve maliyet analizi
+- Proje giderlerinin detaylı izlenmesi
+- Proje bazlı raporlama
 
-```bash
-$ npm install
+### 🚛 Treyler/Römork Yönetimi
+- Treyler tipleri ve kategorileri
+- Görsel malzeme yönetimi (Base64 image storage)
+- Teknik özellik ve sınıflandırma sistemi
+- Model bazlı proje atamaları
+
+### 📦 Stok ve Envanter Yönetimi
+- Ürün kayıt sistemi
+- Stok seviyelerinin takibi
+- Ölçü birimli miktar yönetimi
+- Hizmet/malzeme kategorilendirmesi
+- Proje bazlı malzeme kulımı
+
+### 💰 Finansal Yönetim
+- Fatura oluşturma ve takip sistemi
+- Müşteri/Tedarikçi yönetimi
+- KDV hesaplamaları ve muafiyet yönetimi
+- Uluslararası ticaret desteği (Export/Import)
+- Gümrük beyanname entegrasyonu
+
+### 📊 KDV İade Raporu Otomasyonu
+- Otomatik KDV iade raporu oluşturma
+- En uygun faturaların seçimi
+- PDF rapor üretimi (Puppeteer entegrasyonu)
+- Proje bazlı iade hesaplamaları
+- Yasal uyumluluk kontrolü
+
+### 💬 İletişim ve Bildirimler
+- Dahili mesajlaşma sistemi
+- Real-time bildirimler (Socket.io)
+- Kullanıcı durumu takibi
+- Proje bazlı iletişim
+
+### 🔍 QR Kod Sistemi
+- QR kod üretimi
+- Logo entegrasyonlu QR kodlar
+- Proje ve envanter takibi için QR kod desteği
+
+### 📈 Raporlama ve Analiz
+- Proje maliyet raporları
+- KDV iade raporları
+- PDF rapor üretimi
+- Excel/CSV export özellikleri
+- Finansal analiz raporları
+
+## 🛠️ Teknoloji Stack
+
+### Backend Framework
+- **NestJS 11** - Progressive Node.js framework
+- **TypeScript** - Tip güvenliği ve gelişmiş geliştirici deneyimi
+- **Node.js** - Runtime environment
+
+### Veritabanı ve ORM
+- **PostgreSQL** - Ana veritabanı
+- **Prisma ORM** - Modern database toolkit
+- **Redis** - Caching ve session yönetimi
+
+### Kimlik Doğrulama ve Güvenlik
+- **Passport.js** - Kimlik doğrulama middleware
+- **JWT (JSON Web Tokens)** - Token bazlı authentication
+- **bcrypt** - Şifre hashleme
+
+### API ve Dokümantasyon
+- **Swagger/OpenAPI** - API dokümantasyonu
+- **class-validator** - DTO validasyonu
+- **class-transformer** - Veri dönüşümü
+
+### Dosya ve Rapor İşleme
+- **Puppeteer** - PDF üretimi
+- **Canvas** - Görsel işleme
+- **QRCode** - QR kod üretimi
+
+### Deployment ve DevOps
+- **Docker** - Konteynerizasyon
+- **Docker Compose** - Çoklu servis yönetimi
+
+## 📁 Proje Yapısı
+
+```
+server/
+├── src/                          # Kaynak kod
+│   ├── auth/                    # Kimlik doğrulama modülü
+│   │   ├── dto/                # DTO'lar
+│   │   ├── strategy/           # Passport stratejileri
+│   │   └── entities/           # Auth entity'leri
+│   ├── users/                  # Kullanıcı yönetimi
+│   ├── authorization/          # Yetkilendirme sistemi
+│   ├── projects/               # Proje yönetimi
+│   ├── trailers/               # Treyler/römork yönetimi
+│   ├── stock/                  # Stok yönetimi
+│   ├── invoice/                # Fatura yönetimi
+│   ├── invoice-detail/         # Fatura detayları
+│   ├── customer-supplier/      # Müşteri/tedarikçi yönetimi
+│   ├── project-expense/        # Proje giderleri
+│   ├── report/                 # Raporlama sistemi
+│   ├── bill/                   # Fatura işlemleri
+│   ├── qrcode/                 # QR kod sistemi
+│   ├── chat/                   # Mesajlaşma sistemi
+│   ├── messages/               # Mesaj yönetimi
+│   ├── permission_requests/    # İzin talepleri
+│   ├── redis/                  # Redis entegrasyonu
+│   ├── prisma/                 # Prisma servis
+│   ├── common/                 # Ortak utilities
+│   ├── app.module.ts           # Ana uygulama modülü
+│   └── main.ts                 # Uygulama giriş noktası
+├── prisma/                     # Veritabanı şemaları
+│   ├── schema/                 # Prisma schema
+│   │   ├── schema.prisma      # Ana schema dosyası
+│   │   └── migrations/        # Veritabanı migrasyonları
+│   ├── scripts/               # Veritabanı scriptleri
+│   └── sql/                   # Raw SQL dosyaları
+├── test/                      # Test dosyaları
+├── scripts/                   # Yardımcı scriptler
+├── storage/                   # Dosya depolama
+├── dist/                      # Build çıktıları
+├── docker-compose.yml         # Docker compose konfigürasyonu
+├── tsconfig.json              # TypeScript konfigürasyonu
+├── nest-cli.json              # NestJS CLI konfigürasyonu
+└── package.json               # NPM bağımlılıkları
 ```
 
-## Compile and run the project
+## 🚀 Kurulum ve Çalıştırma
 
-```bash
-# development
-$ npm run start
+### Gereksinimler
+- Node.js 18.0 veya üzeri
+- PostgreSQL 13 veya üzeri
+- Redis 6 veya üzeri
+- npm, yarn veya pnpm
 
-# watch mode
-$ npm run start:dev
+### Environment Variables
+`.env` dosyası oluşturun ve aşağıdaki değişkenleri tanımlayın:
 
-# production mode
-$ npm run start:prod
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/komodo"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/komodo"
+
+# Redis
+REDIS_URL="redis://localhost:6379"
+
+# JWT
+JWT_SECRET="your-super-secret-jwt-key"
+JWT_EXPIRES_IN="7d"
+
+# Application
+PORT=3000
+NODE_ENV="development"
+
+# File Upload
+MAX_FILE_SIZE=10485760
+UPLOAD_DEST="./storage/uploads"
+
+# Report Generation
+REPORT_OUTPUT_DIR="./storage/reports"
 ```
 
-## Run tests
+### Docker ile Hızlı Başlangıç (Önerilen)
 
 ```bash
-# unit tests
-$ npm run test
+# Repository'yi klonlayın
+git clone [repository-url]
+cd server
 
-# e2e tests
-$ npm run test:e2e
+# Docker servisleri başlatın
+docker-compose up -d
 
-# test coverage
-$ npm run test:cov
+# Bağımlılıkları yükleyin
+npm install
+
+# Veritabanını kurulum
+npm run db:setup
+
+# Development server'ı başlatın
+npm run start:dev
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Manuel Kurulum
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+# Repository'yi klonlayın
+git clone [repository-url]
+cd server
+
+# Bağımlılıkları yükleyin
+npm install
+
+# PostgreSQL ve Redis'i başlatın (manuel kurulum gerekli)
+
+# Prisma client'ı oluşturun
+npm run prisma:generate
+
+# Veritabanı migrasyonlarını çalıştırın
+npm run prisma:migrate
+
+# Trigger'ları uygulayın
+npm run apply-triggers
+
+# Seed verilerini yükleyin
+npm run seed
+
+# Development server'ı başlatın
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🔧 NPM Scripts
 
-## Resources
+### Development
+```bash
+npm run start:dev          # Development mode (watch mode)
+npm run start:debug        # Debug mode
+npm run start              # Normal start
+npm run start:prod         # Production mode
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Database Operations
+```bash
+npm run prisma:generate    # Prisma client oluştur
+npm run prisma:migrate     # Migrasyonları çalıştır
+npm run db:setup          # Tam veritabanı kurulumu
+npm run db:seed           # Sadece seed verilerini yükle
+npm run seed              # Manuel seed çalıştır
+npm run apply-triggers    # Database trigger'larını uygula
+npm run permissionSeed    # İzin verilerini yükle
+npm run rawQuery          # Raw SQL script çalıştır
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Build ve Production
+```bash
+npm run build             # Production build
+npm run format            # Kod formatla
+npm run lint             # Lint kontrolü
+```
 
-## Support
+### Testing
+```bash
+npm run test             # Unit testler
+npm run test:watch       # Watch mode testler
+npm run test:cov         # Coverage raporu
+npm run test:debug       # Debug mode testler
+npm run test:e2e         # End-to-end testler
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📚 API Dokümantasyonu
 
-## Stay in touch
+Uygulama çalıştırıldıktan sonra Swagger UI dokümantasyonuna erişebilirsiniz:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```
+http://localhost:3000/api
+```
 
-## License
+### Ana Endpoint'ler
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+#### Authentication
+- `POST /auth/login` - Kullanıcı girişi
+- `POST /auth/register` - Kullanıcı kaydı
+- `GET /auth/profile` - Kullanıcı profili
+
+#### Projeler
+- `GET /projects` - Tüm projeleri listele
+- `POST /projects` - Yeni proje oluştur
+- `GET /projects/:id` - Proje detayı
+- `PUT /projects/:id` - Proje güncelle
+- `DELETE /projects/:id` - Proje sil
+
+#### Faturalar
+- `GET /invoices` - Faturaları listele
+- `POST /invoices` - Yeni fatura oluştur
+- `GET /invoices/:id` - Fatura detayı
+
+#### Raporlar
+- `GET /reports/project/:id/kdv-iade` - KDV iade raporu
+
+#### QR Kodlar
+- `POST /qrcode/generate` - QR kod oluştur
+
+## 🗄️ Veritabanı Şeması
+
+### Ana Modeller
+
+#### Kullanıcılar ve Yetkilendirme
+- `user` - Kullanıcı bilgileri
+- `role` - Roller
+- `permission` - İzinler
+
+#### Proje Yönetimi
+- `treyler_project` - Projeler
+- `treyler_type` - Treyler tipleri
+- `project_expenses` - Proje giderleri
+
+#### Finansal Modeller
+- `Invoice` - Faturalar
+- `InvoiceDetail` - Fatura detayları
+- `CustomerSupplier` - Müşteri/Tedarikçi
+
+#### Stok Yönetimi
+- `Product` - Ürünler
+- `measurement_units` - Ölçü birimleri
+
+#### İletişim
+- `message` - Mesajlar
+
+## 🔐 Güvenlik Özellikleri
+
+### Kimlik Doğrulama
+- JWT token bazlı authentication
+- Bcrypt ile şifre hashleme
+- Token expiration yönetimi
+
+### Yetkilendirme
+- Rol bazlı erişim kontrolü (RBAC)
+- İzin bazlı endpoint koruması
+- Global JWT Guard
+
+### Veri Koruması
+- Input validation (class-validator)
+- SQL injection koruması (Prisma ORM)
+- XSS koruması
+- CORS konfigürasyonu
+
+### API Güvenliği
+- Rate limiting (Redis ile)
+- Request size limitleri
+- Secure headers

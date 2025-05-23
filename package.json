@@ -25,7 +25,10 @@
     "seed": "ts-node prisma/scripts/seed.ts",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
-    "db:setup": "npm run prisma:generate && npm run prisma:migrate &&  npm run apply-triggers  && npm run seed"
+    "db:setup": "npm run prisma:generate && npm run prisma:migrate &&  npm run apply-triggers  && npm run seed",
+    "db:seed": " npm run apply-triggers  && npm run seed",
+    "permissionSeed":  "ts-node prisma/scripts/permissionSeed.ts",
+    "rawQuery": "node ./prisma/scripts/raw-sql.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -41,11 +44,14 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "canvas": "^3.1.0",
+    "date-fns": "^4.1.0",
+    "decimal.js": "^10.5.0",
     "mo": "^1.7.3",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "postgres": "^3.4.5",
     "punycode": "^2.3.1",
+    "puppeteer": "^24.8.2",
     "qrcode": "^1.5.4",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",

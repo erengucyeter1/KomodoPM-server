@@ -3,6 +3,7 @@ import { CreateStockDto } from './dto/create-stock.dto';
 import { UpdateStockDto } from './dto/update-stock.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common/exceptions/bad-request.exception';
 
 @Injectable()
 export class StockService {
@@ -12,7 +13,7 @@ export class StockService {
   async create(createStockDto: CreateStockDto) {
 
     // Check if the stock code already exists
-    const existingStock = await this.prismaService.material.findUnique({
+    const existingStock = await this.prismaService.product.findUnique({
       where: {
         stock_code: createStockDto.stockCode,
       },
@@ -22,11 +23,12 @@ export class StockService {
       throw new Error(`Stock code ${createStockDto.stockCode} already exists.`);
     }
     
-    return this.prismaService.material.create({
+    return this.prismaService.product.create({
       data: {
         stock_code: createStockDto.stockCode,
         measurement_unit: createStockDto.mesurementUnit,
         description: createStockDto.description,
+        isService: createStockDto.isService,
       },
     });
   }
@@ -38,27 +40,46 @@ export class StockService {
     sortBy?: string;
     sortOrder?: 'ASC' | 'DESC';
     filter?: string;
+    isServiceOnly?: boolean;
+    balanceGreaterThan?: number;
   }) {
-    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter } = options;
+    const { page, limit, sortBy = 'stock_code', sortOrder = 'ASC', filter, isServiceOnly, balanceGreaterThan } = options;
     
     // Build where condition for filtering
-    let where: Prisma.materialWhereInput = {};
-    
+    let where: Prisma.ProductWhereInput = {};
+    const conditions: Prisma.ProductWhereInput[] = [];
+
+    if (isServiceOnly) {
+      conditions.push({ isService: true });
+    }
+
+    // Apply balanceGreaterThan filter if it's a valid number
+    if (typeof balanceGreaterThan === 'number' && !isNaN(balanceGreaterThan)) {
+      conditions.push({ balance: { gte: balanceGreaterThan } });
+    }
+
+    console.log(balanceGreaterThan);
+
+
     if (filter) {
-      // Use only fields that are string-searchable
-      where = {
+      // Use only fields that are string-searchable and apply case-insensitive search
+      conditions.push({
         OR: [
-          { stock_code: { contains: filter } },
-          { description: { contains: filter } }
+          { stock_code: { contains: filter, mode: 'insensitive' } },
+          { description: { contains: filter, mode: 'insensitive' } },
         ]
-      };
+      });
+    }
+
+    if (conditions.length > 0) {
+      where = { AND: conditions };
     }
     
     // Calculate skip for pagination
     const skip = (page - 1) * limit;
     
     // Get total count with the corrected where clause
-    const totalItems = await this.prismaService.material.count({ where });
+    const totalItems = await this.prismaService.product.count({ where });
     
     // Convert sortOrder string to Prisma.SortOrder enum
     const sortDirection = sortOrder === 'DESC' ? Prisma.SortOrder.desc : Prisma.SortOrder.asc;
@@ -69,7 +90,7 @@ export class StockService {
     };
     
     // Get items for current page
-    const items = await this.prismaService.material.findMany({
+    const items = await this.prismaService.product.findMany({
       where,
       orderBy,
       skip,
@@ -97,8 +118,8 @@ export class StockService {
     };
   }
 
-  findOne(stock_code: string) {
-    return this.prismaService.material.findUnique({
+  async findOne(stock_code: string) {
+    const product = await this.prismaService.product.findUnique({
       where: {
         stock_code: stock_code,
       },
@@ -109,10 +130,16 @@ export class StockService {
         balance: true,
       },
     });
-  }
+
+    if (!product) {
+      throw new BadRequestException('Ürün bulunamadı');
+    }
+
+    return product;
+}
 
   update(stock_code: string, updateStockDto: UpdateStockDto) {
-    return this.prismaService.material.update({
+    return this.prismaService.product.update({
       where: {
         stock_code: stock_code,
       },
@@ -125,7 +152,7 @@ export class StockService {
   }
 
   remove(stock_code: string) {
-    return this.prismaService.material.delete({
+    return this.prismaService.product.delete({
       where: {
         stock_code: stock_code,
       },

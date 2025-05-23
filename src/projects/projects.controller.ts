@@ -14,7 +14,7 @@ import {
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation,  ApiBearerAuth} from '@nestjs/swagger';
 import { Project } from './entities/project.entity';
 
 @ApiTags('projects')

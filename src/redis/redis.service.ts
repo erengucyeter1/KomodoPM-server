@@ -7,34 +7,41 @@ export class RedisService implements OnModuleInit {
   private client: RedisClientType;
 
   async onModuleInit() {
-    this.client = createClient();
+    this.client = createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379'
+    });
+    
+    this.client.on('error', (err) => console.error('Redis Client Error', err));
     await this.client.connect();
   }
 
-  async addSocket(userId: string, socketId: string) {
-    await this.client.sAdd(`online_users:${userId}`, socketId);
-    await this.client.set(`socket_user_map:${socketId}`, userId);
+  // Online kullanıcıları yönetmek için metodlar
+  async setUserSocket(userId: string, socketId: string): Promise<void> {
+    await this.client.hSet('online_users', userId, socketId);
   }
 
-  async removeSocket(socketId: string) {
-    const userId = await this.client.get(`socket_user_map:${socketId}`);
-    if (userId) {
-      await this.client.sRem(`online_users:${userId}`, socketId);
-      await this.client.del(`socket_user_map:${socketId}`);
-      const remaining = await this.client.sCard(`online_users:${userId}`);
-      if (remaining === 0) {
-        await this.client.del(`online_users:${userId}`);
-      }
-      return userId;
-    }
-    return null;
+  async removeUserSocket(userId: string): Promise<void> {
+    await this.client.hDel('online_users', userId);
   }
 
-  async isOnline(userId: string): Promise<boolean> {
-    return (await this.client.sCard(`online_users:${userId}`)) > 0;
+  async getUserSocket(userId: string): Promise<string | undefined> {
+    return await this.client.hGet('online_users', userId);
   }
 
-  async getSockets(userId: string): Promise<string[]> {
-    return await this.client.sMembers(`online_users:${userId}`);
+  async getAllOnlineUsers(): Promise<Record<string, string>> {
+    return await this.client.hGetAll('online_users');
+  }
+
+  // Socket-User eşleştirmesi için metodlar
+  async setSocketUser(socketId: string, userId: string): Promise<void> {
+    await this.client.set(`socket_user:${socketId}`, userId);
+  }
+
+  async getSocketUser(socketId: string): Promise<string | null> {
+    return await this.client.get(`socket_user:${socketId}`);
+  }
+
+  async removeSocketUser(socketId: string): Promise<void> {
+    await this.client.del(`socket_user:${socketId}`);
   }
 }

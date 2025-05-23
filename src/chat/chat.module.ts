@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ChatGateway } from './sockets/index';
-
+import { RedisService } from '../redis/redis.service';
 @Module({
   imports: [
     PrismaModule,
@@ -14,7 +14,7 @@ import { ChatGateway } from './sockets/index';
       },
     }),
   ],
-  providers: [ChatGateway],
+  providers: [ChatGateway, RedisService],
   exports: [ChatGateway],
 })
 export class ChatModule {}

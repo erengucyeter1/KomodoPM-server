@@ -7,20 +7,20 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  UseGuards,
+  
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 
 import { UserEntity } from './entities/user.entity';
 import { ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 
-
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 
 import {Permissions} from '../common/decorators/permissions/permissions.decorator';
+import { GetUser } from 'src/common/decorators/users/user.decorator';
+
 
 @Controller('users')
 @ApiTags('users')
@@ -29,8 +29,7 @@ export class UserController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @Permissions(['add:user'])
+  @Permissions(['create:user'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async create(@Body() createUserDto: CreateUserDto) {
@@ -39,7 +38,7 @@ export class UserController {
 
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity, isArray: true })
@@ -48,8 +47,23 @@ export class UserController {
     return users.map((user) => new UserEntity(user));
   }
 
+  @Get('chat')
+  
+  @Permissions(['see:chat'])
+  @ApiBearerAuth()
+  @ApiOkResponse({ type: UserEntity, isArray: true })
+  async findAllChat(@GetUser() user: UserEntity) {
+
+    if(user?.permissions.includes('send:message') || user?.permissions.includes('admin')) {
+      return this.usersService.findAll();
+    }
+
+    return this.usersService.findChat(user);
+
+  }
+
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:users'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
@@ -61,7 +75,7 @@ export class UserController {
 
   @Patch(':id')
   @Permissions(['update:user'])
-  @UseGuards(JwtAuthGuard)
+  
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
   async update(
@@ -72,7 +86,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:user'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: UserEntity })
@@ -81,7 +95,7 @@ export class UserController {
   }
 
   @Patch('roles/update')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:user_roles'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })
@@ -100,12 +114,12 @@ export class UserController {
 
 
   @Get(':id/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:user_roles'])
   @ApiBearerAuth()
   @ApiOkResponse({ type: Object, isArray: true })
   async getUserRoles(@Param('id', ParseIntPipe) id: number) {
-    const roles = await this.usersService.getUserRoles(id);
+    const roles = await this.usersService.getUserRoleIDs(id);
     return roles;
   }
 

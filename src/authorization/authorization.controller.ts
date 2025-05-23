@@ -1,11 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
 import { AuthorizationService } from './authorization.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Permissions } from '../common/decorators/permissions/permissions.decorator';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('authorization')
 export class AuthorizationController {
@@ -13,7 +12,7 @@ export class AuthorizationController {
 
   
   @Post('/permissions')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['add:permission'])
   @ApiBearerAuth()
   async create(@Body() createPermissionDto: CreatePermissionDto) {
@@ -22,7 +21,7 @@ export class AuthorizationController {
 
  
   @Get("/permissions")
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:permissions'])
   @ApiBearerAuth()
   async findAll() {
@@ -30,7 +29,7 @@ export class AuthorizationController {
   }
 
   @Patch('/permissions/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:permissions'])
   @ApiBearerAuth()
   async update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto) {
@@ -39,7 +38,7 @@ export class AuthorizationController {
   }
 
   @Delete('/permissions/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:permission'])
   @ApiBearerAuth()
   async remove(@Param('id') id: string) {
@@ -51,7 +50,7 @@ export class AuthorizationController {
   // roles
 
   @Get('/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['see:roles'])
   @ApiBearerAuth()
   async findAllRoles() {
@@ -59,22 +58,23 @@ export class AuthorizationController {
   }
 
   @Post('/roles')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['add:role'])
   @ApiBearerAuth()
   async createRole(@Body() createRoleDto: CreateRoleDto) {
+    console.log("CREATE ROLE DTO", createRoleDto);
     return await this.authorizationService.createRole(createRoleDto);
   }
 
   @Put('/roles/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['update:role'])
   @ApiBearerAuth()
   async updateRole(@Param('id') id: string, @Body() createRoleDto: CreateRoleDto) {
     return await this.authorizationService.updateRole(+id, createRoleDto);
   }
   @Delete('/roles/:id')
-  @UseGuards(JwtAuthGuard)
+  
   @Permissions(['delete:role'])
   @ApiBearerAuth()
   async deleteRole(@Param('id') id: string) {
