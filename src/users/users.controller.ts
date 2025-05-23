@@ -29,7 +29,6 @@ export class UserController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post()
-  
   @Permissions(['create:user'])
   @ApiBearerAuth()
   @ApiCreatedResponse({ type: UserEntity })

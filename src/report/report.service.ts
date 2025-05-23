@@ -341,11 +341,6 @@ export class ReportService {
       </tr>
     `).join('');
 
-    const firmaAdi = "ÖRNEK FİRMA A.Ş.";
-    const vergiDairesi = "ÖRNEK VERGİ DAİRESİ";
-    const vergiNumarasi = "1234567890";
-    const raporDonemi = format(new Date(), "MMMM yyyy", { locale: tr });
-
     return `
       <!DOCTYPE html>
       <html lang="tr">
@@ -366,14 +361,9 @@ export class ReportService {
           </style>
       </head>
       <body>
-          <div class="company-info">
-              <strong>Firma Adı:</strong> ${firmaAdi}<br>
-              <strong>Vergi Dairesi:</strong> ${vergiDairesi}<br>
-              <strong>Vergi Numarası:</strong> ${vergiNumarasi}<br>
-              <strong>Rapor Dönemi:</strong> ${raporDonemi} (Proje Bazlı)
-          </div>
+          
 
-          <h1>KDV İADE TALEBİNE İLİŞKİN YÜKLENİLEN KDV LİSTESİ</h1>
+          <h1>KDV İADE TALEBİNE İLİŞKİN YÜKLENİLEN KDV LİSTESİ (Proje: ${projectId})</h1>
 
           <table>
             <thead>
@@ -403,7 +393,7 @@ export class ReportService {
 
           <div class="footer">
               Bu liste, KDV iade talebimiz kapsamında yüklenilen KDV tutarlarını göstermektedir. <br>
-              [FİRMA YETKİLİSİ ADI SOYADI] - [ÜNVANI] - [${format(new Date(), 'dd.MM.yyyy')}]
+              [${format(new Date(), 'dd.MM.yyyy')}]
           </div>
       </body>
       </html>

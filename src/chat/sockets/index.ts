@@ -13,6 +13,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MessageType } from '@prisma/client'; // Import the enum
+import { RedisService } from '../../redis/redis.service'; // Redis servisinizi import edin
 
 interface AuthenticatedSocket extends Socket {
   user?: any; // Kullanıcı bilgilerini ekleyeceğiz
@@ -33,12 +34,12 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   server: Server;
   
   private logger = new Logger('ChatGateway');
-  private userSocketMap = new Map<string, string>(); // userId -> socketId
 
   constructor(
     private jwtService: JwtService,
-    private prisma: PrismaService
-  ) {}
+    private prisma: PrismaService,
+     private redisService: RedisService // Redis servisinizi enjekte edin
+  ) {}  
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
@@ -60,10 +61,11 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         secret: process.env.JWT_SECRET
       }).user;
 
-      const userID =client.user.id.toString();
+      const userID = client.user.id.toString();
          
-      // Kullanıcı -> Socket eşleştirmesini kaydet
-      this.userSocketMap.set(userID, client.id);
+      // Kullanıcı -> Socket eşleştirmesini Redis'e kaydet
+       await this.redisService.setUserSocket(userID, client.id);
+       await this.redisService.setSocketUser(client.id, userID);
 
       client.join(userID);
 
@@ -77,11 +79,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   // Bağlantı kesilmesi
   async handleDisconnect(client: AuthenticatedSocket) {
-    // Kullanıcı bilgisi varsa haritadan kaldır
-    if (client.user) {
-      this.userSocketMap.delete(client.user.id.toString());
+    try {
+      if (client.user) {
+        const userID = client.user.id.toString();
+        await this.redisService.removeUserSocket(userID);
+        await this.redisService.removeSocketUser(client.id);
+      }
+      this.logger.log(`Client disconnected: ${client.id}`);
+    } catch (error) {
+      this.logger.error(`Error handling disconnect: ${error.message}`, error.stack);
     }
-    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   // Özel sohbet odasına katılma
@@ -193,18 +200,16 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       // Tüm odaya mesajı gönder (gönderen ve alıcı dahil)
       this.server.to(roomId).emit('directMessage', message);
       
-      // Alıcı çevrimiçi mi kontrol et ve bildirim gönder
-      const recipientSocketId = this.userSocketMap.get(recipientId.toString());
+      // Redis'ten alıcının socket ID'sini al
+      const recipientSocketId = await this.redisService.getUserSocket(recipientId.toString());
+
       if (recipientSocketId) {
-        // Eğer alıcı çevrimiçi ancak başka bir kullanıcıyla konuşuyorsa
-        if (recipientSocketId ) {
-          this.server.to(recipientId.toString()).emit('newMessageNotification', {
-            message: {
-              ...message,
-              sender: client.user
-            }
-          });
-        }
+        this.server.to(recipientId.toString()).emit('newMessageNotification', {
+          message: {
+            ...message,
+            sender: client.user
+          }
+        });
       }
 
       return { success: true, message };
@@ -239,7 +244,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       });
 
       // Gönderene mesajlarının okunduğu bilgisini ilet
-      const senderSocketId = this.userSocketMap.get(senderId.toString());
+      const senderSocketId = await this.redisService.getUserSocket(senderId.toString());
+
       if (senderSocketId) {
         this.server.to(senderSocketId).emit('messagesRead', { 
           by: recipientId 
@@ -282,7 +288,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       });
 
       if (message) {
-        const senderSocketId = this.userSocketMap.get(message.senderId.toString());
+        const senderSocketId = await this.redisService.getUserSocket(message.senderId.toString());
+
         if (senderSocketId) {
           this.server.to(senderSocketId).emit('permissionRequestUpdated', {
             messageId,
